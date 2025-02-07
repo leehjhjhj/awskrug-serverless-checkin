@@ -1,0 +1,204 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  csv-handler
+
+Parameters:
+  NowEnvironment:
+    Type: String
+
+Globals:
+  Function:
+    Timeout: 20
+    MemorySize: 256
+    Tracing: Active
+    LoggingConfig:
+      LogFormat: JSON
+  Api:
+    TracingEnabled: true
+Resources:
+  CSVBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '{{resolve:ssm:/${NowEnvironment}/csv-s3}}'
+
+  QrBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '{{resolve:ssm:/${NowEnvironment}/qr-s3}}'
+
+  EventTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${NowEnvironment}-event
+      AttributeDefinitions:
+        - AttributeName: event_code
+          AttributeType: S
+      KeySchema:
+        - AttributeName: event_code
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  EventCheckInTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${NowEnvironment}-event-checkin
+      AttributeDefinitions:
+        - AttributeName: phone
+          AttributeType: S
+        - AttributeName: event_code
+          AttributeType: S
+      KeySchema:
+        - AttributeName: phone
+          KeyType: HASH
+        - AttributeName: event_code
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  EventRegistrationTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${NowEnvironment}-event-registration
+      AttributeDefinitions:
+        - AttributeName: event_code
+          AttributeType: S
+        - AttributeName: phone
+          AttributeType: S
+      KeySchema:
+        - AttributeName: event_code
+          KeyType: HASH
+        - AttributeName: phone
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  BucketInvokeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt HandlerFunction.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !GetAtt CSVBucket.Arn
+
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref NowEnvironment
+      Cors:
+        AllowMethods: "'POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+
+  CommonLayer:
+      Type: AWS::Serverless::LayerVersion
+      Properties:
+        LayerName: !Sub "${NowEnvironment}-common-layer"
+        ContentUri: common_layer/
+        RetentionPolicy: Retain
+        CompatibleRuntimes:
+          - python3.11
+
+  HandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${NowEnvironment}-csv-handler"
+      CodeUri: csv_handler/
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Architectures:
+        - x86_64
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonSSMReadOnlyAccess
+        - S3ReadPolicy:
+            BucketName: !Sub '{{resolve:ssm:/${NowEnvironment}/csv-s3}}'
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${NowEnvironment}-event-registration
+      Environment:
+        Variables:
+          TZ: Asia/Seoul
+          ENV: !Sub ${NowEnvironment}
+      Events:
+        CSVUploadEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref CSVBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .csv
+      Layers:
+        - !Ref CommonLayer
+        - "arn:aws:lambda:ap-northeast-2:770693421928:layer:Klayers-p311-pandas:18"
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${NowEnvironment}-api-handler"
+      CodeUri: api_handler/
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Architectures:
+        - x86_64
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${NowEnvironment}-event-registration
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${NowEnvironment}-event
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${NowEnvironment}-event-checkin
+      Environment:
+        Variables:
+          TZ: Asia/Seoul
+          ENV: !Sub ${NowEnvironment}
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /check
+            Method: POST
+            RestApiId: !Ref ApiGateway
+      Layers:
+        - !Ref CommonLayer
+  
+  EventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${NowEnvironment}-event-handler"
+      CodeUri: event_handler/
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Architectures:
+        - x86_64
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonSSMReadOnlyAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${NowEnvironment}-event
+        - S3CrudPolicy:
+            BucketName: !Sub '{{resolve:ssm:/${NowEnvironment}/qr-s3}}'
+      Environment:
+        Variables:
+          TZ: Asia/Seoul
+          ENV: !Sub ${NowEnvironment}
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /event
+            Method: POST
+            RestApiId: !Ref ApiGateway
+      Layers:
+        - !Ref CommonLayer
+      
+Outputs:
+  CommonLayer:
+    Description: CommonLayer Lambda Layer ARN
+    Value: !Ref CommonLayer
