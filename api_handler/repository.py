@@ -15,7 +15,7 @@ class ApiRepository:
     def get_event_registration(self, event_code: str, phone: str) -> EventRegistration:
         return self._event_registration_table.get(event_code, phone)
     
-    def get_code_expired_at(self, event_code: str) -> Event:
+    def get_event(self, event_code: str) -> Event:
         return self._event_table.get(event_code)
 
     def insert_event_checkin(self, event_checkin: EventCheckIn) -> None:
