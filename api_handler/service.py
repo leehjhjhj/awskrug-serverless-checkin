@@ -20,10 +20,12 @@ class ApiService:
         self._repo: ApiRepository = api_repository
 
     def check_attendance(self, request: CheckInRequest) -> CheckinResponse:
+        event: Event = self._repo.get_event(request.event_code)
+
         if self._check_default_event(request.event_code):
             raise DefaltEventException()
 
-        if self._check_event_expired(request.event_code):
+        if self._check_event_expired(event):
             raise EventRegistrationException()
 
         target_phone_number: str = request.phone.replace('-', '')
@@ -41,15 +43,15 @@ class ApiService:
             phone=event_registration.phone,
             event_code=event_registration.event_code,
             email=event_registration.email,
-            checked_at=datetime.now()
+            checked_at=datetime.now(),
+            event_version=event.event_version
         )
         self._repo.insert_event_checkin(checkin)
         
         result = self._make_checkin_response(request.event_code, target_phone_number)
         return result
 
-    def _check_event_expired(self, event_code: str) -> bool:
-        event: Event = self._repo.get_code_expired_at(event_code)
+    def _check_event_expired(self, event: Event) -> bool:
         code_expired_at: datetime = event.code_expired_at
         return code_expired_at < datetime.now()
 

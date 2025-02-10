@@ -29,6 +29,7 @@ class EventService:
             code_expired_at=request.code_expired_at,
             description=request.description,
             qr_url=qr_url,
+            event_version=request.event_version
         )
         self._repo.insert_event(event)
 

@@ -12,6 +12,7 @@ class Event(BaseModel):
     event_name: str
     qr_url: str  # CloudFront URL
     code_expired_at: datetime
+    event_version: str
 
 class EventCheckIn(BaseModel):
     model_config = {
@@ -21,6 +22,7 @@ class EventCheckIn(BaseModel):
     event_code: str = Field(alias='sort_key')
     email: str | None = None
     checked_at: datetime
+    event_version: str
 
 class EventRegistration(BaseModel):
     model_config = {
