@@ -3,7 +3,12 @@ from model import Event, EventRegistration, EventCheckIn
 from datetime import datetime
 
 from schema import CheckInRequest, CheckinResponse
-from exception import EventRegistrationException, NotFoundException, AlreadyCheckedException
+from exception import (
+    EventRegistrationException,
+    NotFoundException,
+    AlreadyCheckedException,
+    DefaltEventException
+)
 from repository import ApiRepository
 
 
@@ -14,7 +19,10 @@ class ApiService:
     ):
         self._repo: ApiRepository = api_repository
 
-    def check_attendance(self, request: CheckInRequest) -> int:
+    def check_attendance(self, request: CheckInRequest) -> CheckinResponse:
+        if self._check_default_event(request.event_code):
+            raise DefaltEventException()
+
         if self._check_event_expired(request.event_code):
             raise EventRegistrationException()
 
@@ -58,3 +66,8 @@ class ApiService:
             name=event_registration.name,
             count=len(event_checkin)
         )
+
+    def _check_default_event(self, event_code: str) -> bool:
+        if event_code == "test":
+            return True
+        return False
