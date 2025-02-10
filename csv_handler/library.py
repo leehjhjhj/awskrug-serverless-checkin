@@ -15,7 +15,7 @@ def get_email_from_parts(parts: Union[list, pd.Series, str]) -> Optional[str]:
     return None
 
 def process_csv_data(df: pd.DataFrame) -> pd.DataFrame:
-    extra_info = df['(필수작성)  빌딩 출입을 위한 정보 부탁드려요. (예: 변규현(입금자명)/회사명/hong@gmail.com/010-1234-5678) ※ 이 정보는 이벤트 운영자만 볼수 있습니다.']
+    extra_info = df['(필수작성)  빌딩 출입을 위한 정보 부탁드립니다. (예: 이현제(입금자명)/회사명/hong@gmail.com/010-1234-5678) ※ 이 정보는 이벤트 운영자만 볼 수 있습니다.']
     split_info = extra_info.str.split('/')
     df['phone_number'] = split_info.str[-1]
     df['email'] = split_info.apply(get_email_from_parts)
