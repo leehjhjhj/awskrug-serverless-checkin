@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWSKRUG 서버리스 출석체크</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <img src="logo.png" alt="Logo" class="logo">
+        <h1 class="title">AWSKRUG 서버리스 소모임 출석체크</h1>
+        <p class="description">출석체크를 위해 등록하신 핸드폰 번호를 입력해주세요!</p>
+        <div id="errorMessage" class="error-message"></div>
+        <form id="attendanceForm">
+            <input 
+                type="tel" 
+                id="phoneNumber" 
+                placeholder="핸드폰 번호를 입력하세요" 
+                pattern="[0-9]*" 
+                required
+            >
+            <button type="submit">
+                <span class="button-text">출석체크</span>
+                <div class="spinner hidden"></div>
+            </button>
+        </form>
+    </div>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
