@@ -47,21 +47,3 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
         button.disabled = false;
     }
 });
-
-// Result page initialization
-if (document.getElementById('welcomeMessage')) {
-    document.addEventListener('DOMContentLoaded', function() {
-        const name = sessionStorage.getItem('userName');
-        const count = sessionStorage.getItem('userCount');
-        
-        if (name && count) {
-            document.getElementById('welcomeMessage').innerHTML = 
-                `${name}님은 우리 소모임에<br>총 ${count}번 출석하셨어요!`;
-            // Clear the data after use
-            sessionStorage.removeItem('userName');
-            sessionStorage.removeItem('userCount');
-        } else {
-            location.href = 'index.html';
-        }
-    });
-}
