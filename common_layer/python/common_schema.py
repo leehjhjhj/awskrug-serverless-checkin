@@ -8,7 +8,7 @@ class LambdaResponse(BaseModel):
     body: Optional[str] = None
     headers: Dict[str, str] = {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": "https://awskrug-sls.com",
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Methods": "POST,OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Accept",
