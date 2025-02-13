@@ -1,6 +1,11 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 
+from exceptions.domain_exception import(
+    EventRegistrationException,
+    DefaltEventException
+)
+
 
 class Event(BaseModel):
     model_config = {
@@ -13,6 +18,13 @@ class Event(BaseModel):
     qr_url: str  # CloudFront URL
     code_expired_at: datetime
     event_version: str
+
+    def validate_event(self):
+        if self.event_code == "test":
+            raise DefaltEventException()
+
+        if self.code_expired_at < datetime.now():
+            raise EventRegistrationException()
 
 class EventCheckIn(BaseModel):
     model_config = {
