@@ -21,6 +21,7 @@ class EventCheckIn(BaseModel):
     phone: str = Field(alias='partition_key')
     event_code: str = Field(alias='sort_key')
     email: str | None = None
+    name: str | None = None
     checked_at: datetime
     event_version: str
 
