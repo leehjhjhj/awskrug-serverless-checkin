@@ -4,10 +4,9 @@ from datetime import datetime
 
 from schema import CheckInRequest, CheckinResponse
 from exception import (
-    EventRegistrationException,
+    EventNotFoundException,
     NotFoundException,
-    AlreadyCheckedException,
-    DefaltEventException
+    AlreadyCheckedException
 )
 from repository import ApiRepository
 
@@ -21,12 +20,7 @@ class ApiService:
 
     def check_attendance(self, request: CheckInRequest) -> CheckinResponse:
         event: Event = self._repo.get_event(request.event_code)
-
-        if self._check_default_event(request.event_code):
-            raise DefaltEventException()
-
-        if self._check_event_expired(event):
-            raise EventRegistrationException()
+        self._check_event(event)
 
         target_phone_number: str = request.phone.replace('-', '')
         event_registration: EventRegistration = self._repo.get_event_registration(
@@ -43,6 +37,7 @@ class ApiService:
             phone=event_registration.phone,
             event_code=event_registration.event_code,
             email=event_registration.email,
+            name=event_registration.name,
             checked_at=datetime.now(),
             event_version=event.event_version
         )
@@ -51,9 +46,11 @@ class ApiService:
         result = self._make_checkin_response(request.event_code, target_phone_number)
         return result
 
-    def _check_event_expired(self, event: Event) -> bool:
-        code_expired_at: datetime = event.code_expired_at
-        return code_expired_at < datetime.now()
+    def _check_event(self, event: Event) -> bool:
+        if not event:
+            raise EventNotFoundException()
+
+        event.validate_event()
 
     def _check_already_checked(self, event_code: str, phone: str) -> bool:
         event_checkin: EventCheckIn = self._repo.get_event_checkin(phone, event_code)
@@ -68,8 +65,3 @@ class ApiService:
             name=event_registration.name,
             count=len(event_checkin)
         )
-
-    def _check_default_event(self, event_code: str) -> bool:
-        if event_code == "test":
-            return True
-        return False
