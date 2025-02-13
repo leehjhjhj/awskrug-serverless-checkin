@@ -33,14 +33,7 @@ class ApiService:
         if self._check_already_checked(request.event_code, target_phone_number):
             raise AlreadyCheckedException()
         
-        checkin = EventCheckIn(
-            phone=event_registration.phone,
-            event_code=event_registration.event_code,
-            email=event_registration.email,
-            name=event_registration.name,
-            checked_at=datetime.now(),
-            event_version=event.event_version
-        )
+        checkin: EventCheckIn = EventCheckIn.create(event, event_registration)
         self._repo.insert_event_checkin(checkin)
         
         result = self._make_checkin_response(request.event_code, target_phone_number)

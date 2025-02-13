@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pydantic import BaseModel, Field
 from datetime import datetime
 
@@ -36,6 +37,21 @@ class EventCheckIn(BaseModel):
     name: str | None = None
     checked_at: datetime
     event_version: str
+
+    @classmethod
+    def create(
+        cls,
+        event: Event,
+        event_registration: EventRegistration
+    ) -> EventCheckIn:
+        return cls(
+            phone=event_registration.phone,
+            event_code=event_registration.event_code,
+            email=event_registration.email,
+            name=event_registration.name,
+            checked_at=datetime.now(),
+            event_version=event.event_version
+        )
 
 class EventRegistration(BaseModel):
     model_config = {
