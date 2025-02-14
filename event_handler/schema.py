@@ -8,3 +8,4 @@ class EventRequest(BaseModel):
     code_expired_at: datetime
     description: str
     event_name: str
+    event_version: str

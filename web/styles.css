@@ -96,7 +96,7 @@ input:focus {
     border-color: #d86513;
 }
 .title {
-    font-size: clamp(1.2rem, 5vw, 1.8rem);
+    font-size: clamp(1.5rem, 6vw, 2.2rem);
     text-align: center;
     font-weight: 700;
     margin-bottom: 1rem;

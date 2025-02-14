@@ -58,6 +58,8 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
 
   EventRegistrationTable:
     Type: AWS::DynamoDB::Table
@@ -92,7 +94,7 @@ Resources:
       Cors:
         AllowMethods: "'POST,OPTIONS'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-        AllowOrigin: "'*'"
+        AllowOrigin: "'https://awskrug-sls.com'"
 
   CommonLayer:
       Type: AWS::Serverless::LayerVersion
@@ -168,6 +170,40 @@ Resources:
       Layers:
         - !Ref CommonLayer
   
+  EmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${NowEnvironment}-email-handler"
+      CodeUri: email_handler/
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Architectures:
+        - x86_64
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonSSMReadOnlyAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${NowEnvironment}-event
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: "*"
+      Environment:
+        Variables:
+          TZ: Asia/Seoul
+          ENV: !Sub ${NowEnvironment}
+      Layers:
+        - !Ref CommonLayer
+      Events:
+        StreamEvent:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt EventCheckInTable.StreamArn
+            StartingPosition: LATEST
+            BatchSize: 5
+
   EventFunction:
     Type: AWS::Serverless::Function
     Properties:

@@ -2,9 +2,12 @@ import json
 import logging
 from container import ApiContainer
 from exception import (
-    EventRegistrationException,
+    EventNotFoundException,
     NotFoundException,
     AlreadyCheckedException,
+)
+from exceptions.domain_exception import(
+    EventRegistrationException,
     DefaltEventException
 )
 from schema import CheckInRequest, CheckinResponse
@@ -27,9 +30,10 @@ def lambda_handler(event, context):
         ).to_dict()
         
     except (
-            EventRegistrationException,
+            EventNotFoundException,
             NotFoundException,
             AlreadyCheckedException,
+            EventRegistrationException,
             DefaltEventException
         ) as e:
         return LambdaResponse(
