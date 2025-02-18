@@ -1,5 +1,2 @@
-pydantic
-boto3
-pydantic-settings
 qrcode==7.4.2
 Pillow==10.1.0
