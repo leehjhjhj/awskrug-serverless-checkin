@@ -104,6 +104,9 @@ Resources:
         RetentionPolicy: Retain
         CompatibleRuntimes:
           - python3.11
+      Metadata:
+        BuildMethod: makefile
+        BuildArchitecture: x86_64
 
   HandlerFunction:
     Type: AWS::Serverless::Function

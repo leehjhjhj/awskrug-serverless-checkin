@@ -1,5 +1,2 @@
-pydantic
-boto3
-pydantic-settings
 yagmail
 keyring
