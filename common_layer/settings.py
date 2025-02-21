@@ -7,7 +7,6 @@ from parameter_store import ParameterStore
 env = os.environ.get("ENV", "dev")
 parameter_store = ParameterStore()
 
-# 한 번에 모든 파라미터 가져오기
 parameters = {
     'client_url': parameter_store.get_parameter(f"/{env}/client-url"),
     'qr_s3_bucket_name': parameter_store.get_parameter(f"/{env}/qr-s3"),
