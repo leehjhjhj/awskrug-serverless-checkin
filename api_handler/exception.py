@@ -7,8 +7,8 @@ class NotFoundException(Exception):
         super().__init__(self.message)
 
 class AlreadyCheckedException(Exception):
-    def __init__(self):
-        self.message = "이미 출석했습니다."
+    def __init__(self, count: int):
+        self.message = f"이미 출석했습니다. 총 출석 횟수는 {count}회 입니다."
         self.status_code = 400
         super().__init__(self.message)
 
