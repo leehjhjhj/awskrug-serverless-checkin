@@ -30,9 +30,8 @@ class ApiService:
         if not event_registration:
             raise NotFoundException()
 
-        if self._check_already_checked(request.event_code, target_phone_number):
-            raise AlreadyCheckedException()
-        
+        self._check_already_checked(request.event_code, target_phone_number)
+
         checkin: EventCheckIn = EventCheckIn.create(event, event_registration)
         self._repo.insert_event_checkin(checkin)
         
@@ -45,11 +44,11 @@ class ApiService:
 
         event.validate_event()
 
-    def _check_already_checked(self, event_code: str, phone: str) -> bool:
+    def _check_already_checked(self, event_code: str, phone: str) -> None:
         event_checkin: EventCheckIn = self._repo.get_event_checkin(phone, event_code)
-        if not event_checkin:
-            return False
-        return True
+        if event_checkin:
+            event_checkin: EventCheckIn = self._repo.get_all_event_checkin(phone)
+            raise AlreadyCheckedException(len(event_checkin))
 
     def _make_checkin_response(self, event_code: str, phone: str) -> CheckinResponse:
         event_checkin: EventCheckIn = self._repo.get_all_event_checkin(phone)
