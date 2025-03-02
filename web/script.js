@@ -11,8 +11,7 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
     button.disabled = true;
     
     const phoneNumber = document.getElementById('phoneNumber').value;
-    const urlParams = new URLSearchParams(window.location.search);
-    const eventCode = urlParams.get('event') || 'test';
+    const eventCode = getEventCodeFromPath();
     
     try {
         const response = await fetch(`${config.API_URL}/check`, {
