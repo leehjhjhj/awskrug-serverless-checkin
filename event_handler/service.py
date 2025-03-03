@@ -1,7 +1,9 @@
 from model import Event
 from settings import settings
 
-from uuid import uuid4
+import random
+import string
+from datetime import datetime
 
 from schema import EventRequest
 from repository import EventRepository
@@ -20,7 +22,7 @@ class EventService:
         self._repo: EventRepository = event_repository
 
     def create_event(self, request: EventRequest) -> None:
-        event_code: str = str(uuid4())
+        event_code = self._make_event_code(request.event_date_time)
         qr_url: str = self._create_qr_code_png(event_code)
         event: Event = Event(
             event_code=event_code,
@@ -40,7 +42,7 @@ class EventService:
             box_size=10,
             border=4,
         )
-        qr.add_data(f"{settings.client_url}?event={event_code}")
+        qr.add_data(f"{settings.client_url}/{event_code}")
         qr.make(fit=True)
 
         qr_image = qr.make_image(fill_color="black", back_color="white").convert('RGBA')
@@ -75,3 +77,15 @@ class EventService:
             ContentType='image/png'
         )
         return f"https://{bucket_name}.s3.amazonaws.com/{file_name}"
+    
+    def _make_event_code(self, event_date_time: datetime) -> str:
+        MAX_TRY: int = 5
+        count: int = 0
+        while count < MAX_TRY:
+            date_str = event_date_time.strftime("%m%d")
+            random_chars = ''.join(random.choices(string.ascii_uppercase, k=3))
+            event_code = f"{date_str}{random_chars}"
+            if not self._repo.exist_event_code(event_code):
+                return event_code
+            count += 1
+        raise ValueError("Failed to generate unique event code after maximum attempts")
