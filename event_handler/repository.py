@@ -10,3 +10,6 @@ class EventRepository:
 
     def insert_event(self, event: Event) -> Event:
         return self._event_table.put(event)
+    
+    def exist_event_code(self, event_code: str) -> bool:
+        return bool(self._event_table.get(event_code))
