@@ -1,6 +1,5 @@
 from model import Event, EventRegistration, EventCheckIn
-
-from datetime import datetime
+from hash_tool import hash_phone_number
 
 from schema import CheckInRequest, CheckinResponse
 from exception import (
@@ -22,7 +21,8 @@ class ApiService:
         event: Event = self._repo.get_event(request.event_code)
         self._check_event(event)
 
-        target_phone_number: str = request.phone.replace('-', '')
+        origin_phone_number: str = request.phone.replace('-', '')
+        target_phone_number = hash_phone_number(origin_phone_number)
         event_registration: EventRegistration = self._repo.get_event_registration(
             event_code=request.event_code,
             phone=target_phone_number
