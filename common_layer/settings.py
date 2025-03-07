@@ -11,7 +11,8 @@ parameters = {
     'client_url': parameter_store.get_parameter(f"/{env}/client-url"),
     'qr_s3_bucket_name': parameter_store.get_parameter(f"/{env}/qr-s3"),
     'smtp_username': parameter_store.get_parameter(f"/{env}/smtp-username"),
-    'smtp_password': parameter_store.get_parameter(f"/{env}/smtp-password")
+    'smtp_password': parameter_store.get_parameter(f"/{env}/smtp-password"),
+    'salt': parameter_store.get_parameter("/salt")
 }
 
 class Settings(BaseSettings):
@@ -19,5 +20,6 @@ class Settings(BaseSettings):
     qr_s3_bucket_name: str = Field(default=parameters['qr_s3_bucket_name'])
     smtp_username: str = Field(default=parameters['smtp_username'])
     smtp_password: str = Field(default=parameters['smtp_password'])
+    salt: str = Field(default=parameters['salt'])
 
 settings = Settings()
