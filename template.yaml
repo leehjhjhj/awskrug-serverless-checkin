@@ -153,6 +153,7 @@ Resources:
         - x86_64
       Policies:
         - AWSLambdaBasicExecutionRole
+        - AmazonSSMReadOnlyAccess
         - DynamoDBCrudPolicy:
             TableName: !Sub ${NowEnvironment}-event-registration
         - DynamoDBCrudPolicy:
