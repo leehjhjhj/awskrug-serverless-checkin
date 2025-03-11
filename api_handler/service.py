@@ -18,12 +18,12 @@ class ApiService:
         self._repo: ApiRepository = api_repository
 
     def check_attendance(self, request: CheckInRequest) -> CheckinResponse:
-        event: Event = self._repo.get_event(request.event_code)
+        event: Event | None = self._repo.get_event(request.event_code)
         self._check_event(event)
 
         origin_phone_number: str = request.phone.replace('-', '')
         target_phone_number = hash_phone_number(origin_phone_number)
-        event_registration: EventRegistration = self._repo.get_event_registration(
+        event_registration: EventRegistration | None = self._repo.get_event_registration(
             event_code=request.event_code,
             phone=target_phone_number
         )
@@ -38,14 +38,14 @@ class ApiService:
         result = self._make_checkin_response(request.event_code, target_phone_number)
         return result
 
-    def _check_event(self, event: Event) -> bool:
+    def _check_event(self, event: Event | None) -> bool:
         if not event:
             raise EventNotFoundException()
 
         event.validate_event()
 
     def _check_already_checked(self, event_code: str, phone: str) -> None:
-        event_checkin: EventCheckIn = self._repo.get_event_checkin(phone, event_code)
+        event_checkin: EventCheckIn | None = self._repo.get_event_checkin(phone, event_code)
         if event_checkin:
             event_checkin: EventCheckIn = self._repo.get_all_event_checkin(phone)
             raise AlreadyCheckedException(len(event_checkin))
