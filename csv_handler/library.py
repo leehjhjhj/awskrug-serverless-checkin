@@ -16,26 +16,20 @@ def get_email_from_parts(parts: Union[list, pd.Series, str]) -> Optional[str]:
     return None
 
 def process_csv_data(df: pd.DataFrame) -> pd.DataFrame:
-    extra_info = df['(필수작성)  빌딩 출입을 위한 정보 부탁드립니다. (예: 이현제(입금자명)/회사명/hong@gmail.com/010-1234-5678) ※ 이 정보는 이벤트 운영자만 볼 수 있습니다.']
-    split_info = extra_info.str.split('/')
-    phone_numbers = split_info.str[-1]
-    names = split_info.str[0]
+    phone_numbers = df['visitor_mobile']
+    names = df['visitor_name']
+    emails = df['visitor_email']
     
     valid_mask = phone_numbers.notna() & (phone_numbers.str.len() > 0)
     phone_numbers = phone_numbers[valid_mask]
-    names = names[valid_mask]
     
     phone_numbers = phone_numbers.str.strip()
     phone_numbers = phone_numbers.str.replace('-', '', regex=False)
     
     df_valid = df.loc[valid_mask].copy()
     df_valid['phone_number'] = phone_numbers.apply(hash_phone_number)
-
-    has_numbers = names.str.contains('\d', regex=True, na=False)
-    df_valid.loc[has_numbers, 'Name'] = df.loc[valid_mask, 'Name'][has_numbers]
-    df_valid.loc[~has_numbers, 'Name'] = names[~has_numbers].str.strip()
-    
-    df_valid['email'] = split_info[valid_mask].apply(get_email_from_parts)
+    df_valid['Name'] = names[valid_mask]
+    df_valid['email'] = emails[valid_mask]
     
     result_df = df_valid[['Name', 'email', 'phone_number']]
     return result_df
