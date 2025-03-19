@@ -138,7 +138,7 @@ Resources:
               S3Key:
                 Rules:
                   - Name: suffix
-                    Value: .csv
+                    Value: .xlsx
       Layers:
         - !Ref CommonLayer
         - "arn:aws:lambda:ap-northeast-2:770693421928:layer:Klayers-p311-pandas:18"
