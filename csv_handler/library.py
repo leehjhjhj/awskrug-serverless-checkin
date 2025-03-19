@@ -16,6 +16,7 @@ def get_email_from_parts(parts: Union[list, pd.Series, str]) -> Optional[str]:
     return None
 
 def process_csv_data(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.where(pd.notna(df), None)
     phone_numbers = df['visitor_mobile']
     names = df['visitor_name']
     emails = df['visitor_email']
