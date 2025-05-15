@@ -1,6 +1,6 @@
 function getEventCodeFromPath() {
-    const path = window.location.pathname;
-    console.log(path)
-    const eventCode = path.split('/').filter(Boolean).pop();
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventCode = urlParams.get('c');
+    console.log('Event Code:', eventCode);
     return eventCode || 'test';
 }
