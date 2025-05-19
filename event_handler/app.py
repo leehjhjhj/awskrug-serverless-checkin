@@ -13,10 +13,10 @@ def lambda_handler(event, context):
         container = EventContainer.get_instance()
         request_body: dict = json.loads(event.get('body', '{}'))
         request = EventRequest(**request_body)
-        container.service.create_event(request)
+        response = container.service.create_event(request)
         return LambdaResponse(
             status_code=200,
-            body=None
+            body=json.dumps(response.model_dump())
         ).to_dict()
         
     # except () as e:

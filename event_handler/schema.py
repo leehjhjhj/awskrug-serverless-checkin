@@ -9,3 +9,7 @@ class EventRequest(BaseModel):
     description: str
     event_name: str
     event_version: str
+
+class EventResponse(BaseModel):
+    qr_url: str
+    event_code: str
