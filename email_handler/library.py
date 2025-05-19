@@ -1,4 +1,17 @@
+event_version_name_mapping = {
+        "1": "AWSKRUG 서버리스 소모임",
+        "2": "AWSKRUG 자격증 소모임",
+        "3": "AUSG"
+    }
 
+def routing_text_by_event_version(event_version: str) -> str:
+    announcement_text = {
+        "1": """
+            서버리스 소모임은 늘 열려있어요. <br>
+            발표를 희망하시면 AWSKRUG 슬랙의 @hyunje로 DM주세요 😁
+            """
+    }
+    return announcement_text.get(event_version, "")
 
 def make_html_body(event_name: str, hello_text: str | None) -> str:
     body_html = f"""
@@ -15,13 +28,12 @@ def make_html_body(event_name: str, hello_text: str | None) -> str:
                             </p>
                             <div style="background-color: #fff9f0; padding: 10px; border-radius: 6px; border: 1px solid #ffe0b2; margin-top: 20px;">
                                 <p style="color: #666; margin: 5px 0 0 0; text-align: center; font-size: 14px;">
-                                    서버리스 소모임은 늘 열려있어요. <br>
-                                    발표를 희망하시면 AWSKRUG 슬랙의 @hyunje로 DM주세요 😁
+                                    {routing_text_by_event_version(event_name)}
                                 </p>
                             </div>
                             <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee; text-align: center;">
                                 <p style="color: #666; font-size: 14px; margin: 0;">
-                                    AWSKRUG 서버리스 소모임
+                                    {event_version_name_mapping[event_name]}
                                 </p>
                             </div>
                         </div>
