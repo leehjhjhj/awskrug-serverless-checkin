@@ -13,7 +13,7 @@ def routing_text_by_event_version(event_version: str) -> str:
     }
     return announcement_text.get(event_version, "")
 
-def make_html_body(event_name: str, hello_text: str | None) -> str:
+def make_html_body(event_name: str, event_version: str, hello_text: str | None) -> str:
     body_html = f"""
             <html>
             <body style="font-family: Arial, sans-serif; background-color: #f8f9fa;">
@@ -28,12 +28,12 @@ def make_html_body(event_name: str, hello_text: str | None) -> str:
                             </p>
                             <div style="background-color: #fff9f0; padding: 10px; border-radius: 6px; border: 1px solid #ffe0b2; margin-top: 20px;">
                                 <p style="color: #666; margin: 5px 0 0 0; text-align: center; font-size: 14px;">
-                                    {routing_text_by_event_version(event_name)}
+                                    {routing_text_by_event_version(event_version)}
                                 </p>
                             </div>
                             <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee; text-align: center;">
                                 <p style="color: #666; font-size: 14px; margin: 0;">
-                                    {event_version_name_mapping[event_name]}
+                                    {event_version_name_mapping[event_version]}
                                 </p>
                             </div>
                         </div>
