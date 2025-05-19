@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUSG 빅챗 출석체크</title>
+    <link rel="icon" type="image/x-icon" href="../favicon.png">
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="success-container" style="text-align: center; padding: 20px;">
+            <img src="../welcome.png" alt="Welcome" style="max-width: 300px; margin: 20px 0;">
+            <h2 id="welcomeMessage" style="color: #333; margin: 20px 0;"></h2>
+            <p style="color: #666; font-size: 1.1em;">다음에도 와주세요 😊</p>
+        <br>
+            <button onclick="location.href='index.html'">
+                처음으로
+            </button>
+        </div>
+    </div>
+    <script src="../utils.js"></script>
+    <script src="../config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const name = sessionStorage.getItem('userName');
+            const count = sessionStorage.getItem('userCount');
+            
+            if (name && count) {
+                document.getElementById('welcomeMessage').innerHTML = 
+                    `${name}님은 우리 소모임에<br>총 ${count}번 출석하셨어요!`;
+                // Clear the data after use
+                sessionStorage.removeItem('userName');
+                sessionStorage.removeItem('userCount');
+            } else {
+                location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>
