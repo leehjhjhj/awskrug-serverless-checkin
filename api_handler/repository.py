@@ -24,8 +24,14 @@ class ApiRepository:
     def get_event_checkin(self, phone: str, event_code: str) -> EventCheckIn:
         return self._event_checkin_table.get(phone, event_code)
 
-    def get_all_event_checkin(self, phone: str) -> list[EventCheckIn]:
+    def get_all_event_checkin(self, phone: str, event_version: str) -> list[EventCheckIn]:
         event_checkins = self._event_checkin_table.query(
-            partition_key=phone
+            partition_key=phone,
+            filter_expression={
+                'event_version': {
+                    'operator': 'eq',
+                    'value': event_version
+                }
+            }
         )
         return event_checkins
