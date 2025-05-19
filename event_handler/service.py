@@ -5,7 +5,7 @@ import random
 import string
 from datetime import datetime
 
-from schema import EventRequest
+from schema import EventRequest, EventResponse
 from repository import EventRepository
 
 from io import BytesIO
@@ -21,7 +21,7 @@ class EventService:
     ):
         self._repo: EventRepository = event_repository
 
-    def create_event(self, request: EventRequest) -> None:
+    def create_event(self, request: EventRequest) -> EventResponse:
         event_code = self._make_event_code(request.event_date_time)
         qr_url: str = self._create_qr_code_png(event_code)
         event: Event = Event(
@@ -34,6 +34,10 @@ class EventService:
             event_version=request.event_version
         )
         self._repo.insert_event(event)
+        return EventResponse(
+            qr_url=qr_url,
+            event_code=event_code
+        )
 
     def _create_qr_code_png(self, event_code: str) -> str:
         qr = qrcode.QRCode(
@@ -42,7 +46,7 @@ class EventService:
             box_size=10,
             border=4,
         )
-        qr.add_data(f"{settings.client_url}/{event_code}")
+        qr.add_data(f"{settings.client_url}/?c={event_code}")
         qr.make(fit=True)
 
         qr_image = qr.make_image(fill_color="black", back_color="white").convert('RGBA')
