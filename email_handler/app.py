@@ -39,7 +39,7 @@ def lambda_handler(event, context):
                 continue
                 
             subject = "소모임 출석이 완료되었어요!"
-            body_html = make_html_body(event_name, hello_text)
+            body_html = make_html_body(event_name, event_code, hello_text)
             
             yag.send(
                 to=recipient_email,
