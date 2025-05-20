@@ -1,0 +1,25 @@
+# 노드 모듈
+node_modules/
+
+# 빌드 디렉토리
+dist/
+
+# 로그 파일
+*.log
+npm-debug.log*
+
+# 환경 변수
+.env
+
+# 에디터 설정
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS 파일
+.DS_Store
+Thumbs.db
+
+#env
+.env
