@@ -22,6 +22,12 @@ import RegistrationList from './pages/registrations/RegistrationList';
 import CheckinList from './pages/checkins/CheckinList';
 import EventStats from './pages/stats/EventStats';
 
+// Group Pages - 소모임 관련 페이지
+import GroupList from './pages/groups/GroupList';
+import GroupForm from './pages/groups/GroupForm';
+import GroupDetail from './pages/groups/GroupDetail';
+import GroupStats from './pages/groups/GroupStats';
+
 // Protected route component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -95,6 +101,48 @@ function App() {
               </ProtectedRoute>
             } />
             
+            {/* 소모임(그룹) 관련 라우트 */}
+            <Route path="/groups" element={
+              <ProtectedRoute>
+                <Layout>
+                  <GroupList />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/groups/new" element={
+              <ProtectedRoute>
+                <Layout>
+                  <GroupForm />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/groups/:groupCode" element={
+              <ProtectedRoute>
+                <Layout>
+                  <GroupDetail />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/groups/:groupCode/edit" element={
+              <ProtectedRoute>
+                <Layout>
+                  <GroupForm />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/groups/:groupCode/stats" element={
+              <ProtectedRoute>
+                <Layout>
+                  <GroupStats />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            {/* 이벤트 관련 라우트 */}
             <Route path="/events" element={
               <ProtectedRoute>
                 <Layout>
