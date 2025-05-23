@@ -1,7 +1,7 @@
 # AWSKRUG Serverless Attendance System
 
 A serverless attendance tracking system for AWSKRUG meetups using AWS services.
-<img width="915" alt="스크린샷 2025-02-10 오후 7 52 04" src="https://github.com/user-attachments/assets/ff392cc4-8eb6-4ecb-9632-b62b25a870dd" />
+![image](https://github.com/user-attachments/assets/4743cf44-1d92-4683-8939-2cdf919fe6db)
 
 
 ## Features
