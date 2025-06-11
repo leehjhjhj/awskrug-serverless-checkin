@@ -79,6 +79,20 @@ Resources:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
 
+  OrganizationTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${NowEnvironment}-organization
+      AttributeDefinitions:
+        - AttributeName: code
+          AttributeType: S
+      KeySchema:
+        - AttributeName: code
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
   BucketInvokeLambdaPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -160,6 +174,8 @@ Resources:
             TableName: !Sub ${NowEnvironment}-event
         - DynamoDBCrudPolicy:
             TableName: !Sub ${NowEnvironment}-event-checkin
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${NowEnvironment}-organization
       Environment:
         Variables:
           TZ: Asia/Seoul
@@ -188,6 +204,8 @@ Resources:
         - AmazonSSMReadOnlyAccess
         - DynamoDBCrudPolicy:
             TableName: !Sub ${NowEnvironment}-event
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${NowEnvironment}-organization
         - Statement:
             - Effect: Allow
               Action:
@@ -222,6 +240,8 @@ Resources:
         - AmazonSSMReadOnlyAccess
         - DynamoDBCrudPolicy:
             TableName: !Sub ${NowEnvironment}-event
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${NowEnvironment}-organization
         - S3CrudPolicy:
             BucketName: !Sub '{{resolve:ssm:/${NowEnvironment}/qr-s3}}'
       Environment:
