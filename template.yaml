@@ -235,6 +235,24 @@ Resources:
             Path: /event
             Method: POST
             RestApiId: !Ref ApiGateway
+        EventListEvent:
+          Type: Api
+          Properties:
+            Path: /event
+            Method: GET
+            RestApiId: !Ref ApiGateway
+        EventUpdateEvent:
+          Type: Api
+          Properties:
+            Path: /event
+            Method: PUT
+            RestApiId: !Ref ApiGateway
+        EventDeleteEvent:
+          Type: Api
+          Properties:
+            Path: /event
+            Method: DELETE
+            RestApiId: !Ref ApiGateway
       Layers:
         - !Ref CommonLayer
       
