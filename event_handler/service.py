@@ -5,7 +5,7 @@ import random
 import string
 from datetime import datetime
 
-from schema import EventRequest, EventResponse
+from schema import EventRequest, EventResponse, EventListResponse, EventPutRequest, EventDeleteRequest
 from repository import EventRepository
 
 from io import BytesIO
@@ -38,6 +38,26 @@ class EventService:
             qr_url=qr_url,
             event_code=event_code
         )
+    
+    def get_list_event(self) -> list[dict]:
+        response = self._repo.get_list_event()
+        events = response['Items']
+        return events
+    
+    def update_event(self, request: EventPutRequest) -> Event:
+        request_data = {
+            'event_name': request.event_name,
+            'event_date_time': request.event_date_time,
+            'code_expired_at': request.code_expired_at,
+            'description': request.description,
+            'event_version': request.event_version,
+            'qr_url': request.qr_url
+        }
+        new_event = self._repo.update_event(request.event_code, request_data)
+        return new_event
+    
+    def delete_event(self, request: EventDeleteRequest) -> None:
+        self._repo.delete_event(request.event_code)
 
     def _create_qr_code_png(self, event_code: str) -> str:
         qr = qrcode.QRCode(
