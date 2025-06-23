@@ -21,6 +21,7 @@ def lambda_handler(event, context):
             request_body = {}
 
         if http_method == 'POST' and resource_path == '/event':
+            request_body = EventRequest(**request_body)
             response = container.service.create_event(request_body)
             response = json.dumps(response.model_dump())
         elif http_method == 'GET' and resource_path == '/event':
