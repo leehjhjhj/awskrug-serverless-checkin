@@ -17,6 +17,9 @@ class EventRepository:
     def get_event(self, event_code: str) -> Event:
         return self._event_table.get(event_code)
     
+    def exist_event_code(self, event_code: str) -> bool:
+        return bool(self._event_table.get(event_code))
+    
     def update_event(self, event_code: str, request_data: dict) -> Event:
         return self._event_table.update(partition_key=event_code, update_data=request_data)
     
