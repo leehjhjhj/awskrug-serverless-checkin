@@ -1,7 +1,8 @@
 event_version_name_mapping = {
         "1": "AWSKRUG 서버리스 소모임",
         "2": "AWSKRUG 자격증 소모임",
-        "3": "AUSG"
+        "3": "AUSG",
+        "4": "AUSG 퍼블릭 빅챗",
     }
 
 def routing_text_by_event_version(event_version: str) -> str:
@@ -9,6 +10,10 @@ def routing_text_by_event_version(event_version: str) -> str:
         "1": """
             서버리스 소모임은 늘 열려있어요. <br>
             발표를 희망하시면 AWSKRUG 슬랙의 @hyunje로 DM주세요 😁
+            """,
+        "4": """
+            오늘 재밌게 들으셨나요? 😁 <br>
+            https://ausg.me 에서 리쿠르팅이 진행되고 있으니 잊지 마세요!
             """
     }
     return announcement_text.get(event_version, "")
