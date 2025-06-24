@@ -255,6 +255,59 @@ Resources:
             RestApiId: !Ref ApiGateway
       Layers:
         - !Ref CommonLayer
+  ParticipantsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${NowEnvironment}-participants-handler"
+      CodeUri: participants_handler/
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Architectures:
+        - x86_64
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonSSMReadOnlyAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${NowEnvironment}-event-registration
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${NowEnvironment}-event-checkin
+      Environment:
+        Variables:
+          TZ: Asia/Seoul
+          ENV: !Sub ${NowEnvironment}
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /registration
+            Method: POST
+            RestApiId: !Ref ApiGateway
+        EventListEvent:
+          Type: Api
+          Properties:
+            Path: /registration
+            Method: GET
+            RestApiId: !Ref ApiGateway
+        EventUpdateEvent:
+          Type: Api
+          Properties:
+            Path: /registration
+            Method: PUT
+            RestApiId: !Ref ApiGateway
+        EventDeleteEvent:
+          Type: Api
+          Properties:
+            Path: /registration
+            Method: DELETE
+            RestApiId: !Ref ApiGateway
+        RegistrationListEvent:
+          Type: Api
+          Properties:
+            Path: /registration/list
+            Method: GET
+            RestApiId: !Ref ApiGateway
+      Layers:
+        - !Ref CommonLayer
       
 Outputs:
   CommonLayer:
