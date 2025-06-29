@@ -61,3 +61,12 @@ class EventRegistration(BaseModel):
     phone: str = Field(alias='sort_key')
     name: str | None = None
     email: str | None = None
+
+class EventOrganization(BaseModel):
+    model_config = {
+        'populate_by_name': True
+    }
+    organization_code: str = Field(alias='partition_key')
+    organization_name: str
+    logo_url: str
+    event_version: list[str]
