@@ -19,6 +19,7 @@ class Event(BaseModel):
     qr_url: str  # CloudFront URL
     code_expired_at: datetime
     event_version: str
+    organization_code: str
 
     def validate_event(self):
         if self.event_code == "test":
