@@ -12,10 +12,16 @@ import {
   InputLabel,
   Input,
   FormHelperText,
-  Alert
+  Alert,
+  Chip,
+  IconButton,
+  Divider
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import organizationService from '../../services/organizationService';
 
 // Mock data for a single group
 const mockGroup = {
@@ -32,35 +38,65 @@ const GroupForm = () => {
   const isEditMode = !!groupCode;
   
   const [formData, setFormData] = useState({
-    group_code: '',
-    group_name: '',
+    organization_code: '',
+    organization_name: '',
     description: '',
-    logo_url: ''
+    logo_url: '',
+    event_version: []
   });
+  
+  const [newEventVersion, setNewEventVersion] = useState('');
   
   const [loading, setLoading] = useState(isEditMode);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+    
     if (isEditMode) {
-      // Simulate API call to fetch group data
       const fetchGroup = async () => {
+        if (cancelled) return;
+        
         try {
-          // In a real app, this would be an API call
-          setTimeout(() => {
-            setFormData(mockGroup);
-            setLoading(false);
-          }, 500);
+          setLoading(true);
+          const orgData = await organizationService.getOrganization(groupCode);
+          
+          if (!cancelled) {
+            setFormData({
+              organization_code: orgData.organization_code,
+              organization_name: orgData.organization_name,
+              description: orgData.organization_name, // Use name as description
+              logo_url: 'https://via.placeholder.com/150', // Default logo
+              event_version: orgData.event_version || []
+            });
+          }
         } catch (error) {
-          console.error('Error fetching group:', error);
-          setError('그룹 정보를 불러오는데 실패했습니다.');
-          setLoading(false);
+          if (!cancelled) {
+            console.error('Error fetching organization:', error);
+            setError('소모임 정보를 불러오는데 실패했습니다.');
+            // Fallback to mock data
+            setFormData({
+              organization_code: mockGroup.group_code,
+              organization_name: mockGroup.group_name,
+              description: mockGroup.description,
+              logo_url: mockGroup.logo_url,
+              event_version: ['1', '2'] // Default event versions
+            });
+          }
+        } finally {
+          if (!cancelled) {
+            setLoading(false);
+          }
         }
       };
 
       fetchGroup();
     }
+    
+    return () => {
+      cancelled = true;
+    };
   }, [isEditMode, groupCode]);
 
   const handleChange = (e) => {
@@ -71,16 +107,47 @@ const GroupForm = () => {
     }));
   };
 
+  const handleAddEventVersion = () => {
+    const trimmedVersion = newEventVersion.trim();
+    if (trimmedVersion && !formData.event_version.includes(trimmedVersion)) {
+      setFormData(prev => ({
+        ...prev,
+        event_version: [...prev.event_version, trimmedVersion]
+      }));
+      setNewEventVersion('');
+    }
+  };
+
+  const handleRemoveEventVersion = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      event_version: prev.event_version.filter((_, i) => i !== index)
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (isEditMode) {
+        // For update, use the organizationService
+        const updateData = {
+          organization_code: formData.organization_code,
+          organization_name: formData.organization_name,
+          event_version: formData.event_version,
+          logo_url: formData.logo_url
+        };
+        
+        await organizationService.updateOrganization(updateData);
+        console.log('Organization updated:', updateData);
+      } else {
+        // Create mode is disabled, but keeping for completeness
+        console.log('Create mode is disabled');
+        throw new Error('소모임 등록 기능은 비활성화되었습니다.');
+      }
       
-      console.log('Form submitted:', formData);
       setSuccess(true);
       
       // Redirect after successful submission
@@ -89,7 +156,7 @@ const GroupForm = () => {
       }, 1500);
     } catch (error) {
       console.error('Error submitting form:', error);
-      setError('소모임 저장에 실패했습니다. 다시 시도해주세요.');
+      setError(error.message || '소모임 저장에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }
@@ -133,8 +200,8 @@ const GroupForm = () => {
                 required
                 fullWidth
                 label="소모임 코드"
-                name="group_code"
-                value={formData.group_code}
+                name="organization_code"
+                value={formData.organization_code}
                 onChange={handleChange}
                 disabled={isEditMode}
                 helperText={isEditMode ? "소모임 코드는 수정할 수 없습니다" : "영문, 숫자, 하이픈만 사용 가능"}
@@ -146,8 +213,8 @@ const GroupForm = () => {
                 required
                 fullWidth
                 label="소모임 이름"
-                name="group_name"
-                value={formData.group_name}
+                name="organization_name"
+                value={formData.organization_name}
                 onChange={handleChange}
               />
             </Grid>
@@ -173,6 +240,57 @@ const GroupForm = () => {
                 onChange={handleChange}
                 helperText="로고 이미지의 URL을 입력하세요"
               />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                이벤트 버전 관리
+              </Typography>
+              
+              {/* 새 이벤트 버전 추가 */}
+              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                <TextField
+                  label="새 이벤트 버전"
+                  value={newEventVersion}
+                  onChange={(e) => setNewEventVersion(e.target.value)}
+                  size="small"
+                  placeholder="예: 3, v1.0, 2024"
+                  helperText="추가할 이벤트 버전을 입력하세요"
+                />
+                <Button
+                  variant="outlined"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddEventVersion}
+                  disabled={!newEventVersion.trim()}
+                  sx={{ height: 'fit-content', mt: 1 }}
+                >
+                  추가
+                </Button>
+              </Box>
+              
+              {/* 기존 이벤트 버전 목록 */}
+              <Box>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  현재 이벤트 버전 ({formData.event_version.length}개)
+                </Typography>
+                {formData.event_version.length === 0 ? (
+                  <Alert severity="info">등록된 이벤트 버전이 없습니다.</Alert>
+                ) : (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {formData.event_version.map((version, index) => (
+                      <Chip
+                        key={index}
+                        label={version}
+                        onDelete={() => handleRemoveEventVersion(index)}
+                        deleteIcon={<DeleteIcon />}
+                        variant="outlined"
+                        color="primary"
+                      />
+                    ))}
+                  </Box>
+                )}
+              </Box>
             </Grid>
             
             <Grid item xs={12}>

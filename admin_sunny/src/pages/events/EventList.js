@@ -25,14 +25,46 @@ const EventList = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    fetchEvents();
+    let cancelled = false;
+    
+    const loadEvents = async () => {
+      if (cancelled) return;
+      
+      try {
+        setLoading(true);
+        const data = await eventService.getAllEvents();
+        
+        if (!cancelled) {
+          const eventList = data.events || [];
+          setEvents(eventList.map(event => ({
+            ...event,
+            id: event.event_code
+          })));
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to fetch events:', error);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadEvents();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const fetchEvents = async () => {
+  const refetchEvents = async () => {
     try {
       setLoading(true);
       const data = await eventService.getAllEvents();
-      setEvents(data.map(event => ({
+      const eventList = data.events || [];
+      setEvents(eventList.map(event => ({
         ...event,
         id: event.event_code
       })));
@@ -47,7 +79,7 @@ const EventList = () => {
     if (window.confirm('이 이벤트를 삭제하시겠습니까?')) {
       try {
         await eventService.deleteEvent(eventCode);
-        fetchEvents();
+        refetchEvents();
       } catch (error) {
         console.error('Failed to delete event:', error);
       }
@@ -55,8 +87,8 @@ const EventList = () => {
   };
 
   const filteredEvents = events.filter(event => 
-    event.event_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.event_code.toLowerCase().includes(searchTerm.toLowerCase())
+    event.event_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    event.event_code?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const columns = [
@@ -156,6 +188,7 @@ const EventList = () => {
           rowsPerPageOptions={[5, 10, 20]}
           loading={loading}
           disableSelectionOnClick
+          getRowId={(row) => row.event_code}
         />
       </Paper>
     </Box>

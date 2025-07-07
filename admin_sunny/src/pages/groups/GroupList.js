@@ -8,6 +8,7 @@ import AddIcon from '@mui/icons-material/Add';
 import GroupIcon from '@mui/icons-material/Group';
 import EventIcon from '@mui/icons-material/Event';
 import PeopleIcon from '@mui/icons-material/People';
+import organizationService from '../../services/organizationService';
 
 // Mock data for groups
 const mockGroups = [
@@ -45,21 +46,46 @@ const GroupList = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API call
+    let cancelled = false;
+    
     const fetchGroups = async () => {
+      if (cancelled) return;
+      
       try {
-        // In a real app, this would be an API call
-        setTimeout(() => {
-          setGroups(mockGroups);
-          setLoading(false);
-        }, 500);
+        setLoading(true);
+        const organizationsData = await organizationService.getAllOrganizations();
+        
+        if (!cancelled) {
+          // Transform API response to match component structure
+          const transformedGroups = organizationsData.map(org => ({
+            group_code: org.organization_code,
+            group_name: org.organization_name,
+            description: org.organization_name, // Use name as description since API doesn't provide description
+            created_at: new Date().toISOString(), // Default created date
+            logo_url: 'https://via.placeholder.com/150', // Default logo
+            event_count: org.event_version ? org.event_version.length : 0, // Count available event versions
+            member_count: 0 // Default member count
+          }));
+          setGroups(transformedGroups);
+        }
       } catch (error) {
-        console.error('Error fetching groups:', error);
-        setLoading(false);
+        if (!cancelled) {
+          console.error('Error fetching organizations:', error);
+          // Fallback to mock data
+          setGroups(mockGroups);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchGroups();
+    
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading) {
@@ -72,15 +98,6 @@ const GroupList = () => {
         <Typography variant="h4" component="h1" gutterBottom>
           소모임 목록
         </Typography>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          startIcon={<AddIcon />}
-          component={Link}
-          to="/groups/new"
-        >
-          소모임 등록
-        </Button>
       </Box>
 
       <Grid container spacing={3}>

@@ -28,7 +28,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
     { text: '대시보드', icon: <DashboardIcon />, path: '/dashboard' },
     { text: '소모임 관리', icon: <GroupsIcon />, path: '/groups' },
     { text: '이벤트 관리', icon: <EventIcon />, path: '/events' },
-    { text: '통계', icon: <BarChartIcon />, path: '/stats' },
+    // { text: '통계', icon: <BarChartIcon />, path: '/stats' }, // 통계 메뉴 임시 비활성화
     { text: '엑셀 업로드', icon: <UploadFileIcon />, path: '/upload' },
   ];
 

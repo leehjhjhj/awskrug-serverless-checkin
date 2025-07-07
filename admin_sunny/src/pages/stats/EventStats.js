@@ -37,26 +37,40 @@ const EventStats = () => {
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
 
   useEffect(() => {
-    if (eventCode) {
-      fetchStats();
-    }
-  }, [eventCode]);
+    let cancelled = false;
+    
+    const fetchStats = async () => {
+      if (!eventCode || cancelled) return;
+      
+      try {
+        setLoading(true);
+        const data = await eventService.getEventStats(eventCode);
+        
+        if (!cancelled) {
+          setStats(data);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to fetch event stats:', error);
+          setAlert({
+            open: true,
+            message: '통계 정보를 불러오는데 실패했습니다.',
+            severity: 'error'
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
 
-  const fetchStats = async () => {
-    try {
-      setLoading(true);
-      const data = await eventService.getEventStats(eventCode);
-      setStats(data);
-    } catch (error) {
-      setAlert({
-        open: true,
-        message: '통계 정보를 불러오는데 실패했습니다.',
-        severity: 'error'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchStats();
+    
+    return () => {
+      cancelled = true;
+    };
+  }, [eventCode]);
 
   const handleExport = async (format) => {
     try {
