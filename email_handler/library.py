@@ -1,9 +1,3 @@
-event_version_name_mapping = {
-        "1": "AWSKRUG 서버리스 소모임",
-        "2": "AWSKRUG 자격증 소모임",
-        "3": "AUSG",
-        "4": "AUSG 퍼블릭 빅챗",
-    }
 
 def routing_text_by_event_version(event_version: str) -> str:
     announcement_text = {
@@ -18,7 +12,8 @@ def routing_text_by_event_version(event_version: str) -> str:
     }
     return announcement_text.get(event_version, "")
 
-def make_html_body(event_name: str, event_version: str, hello_text: str | None) -> str:
+def make_html_body(event_name: str, event_version: str, organization_name: str, hello_text: str | None) -> str:
+    print(f"{routing_text_by_event_version(event_version)}")
     body_html = f"""
             <html>
             <body style="font-family: Arial, sans-serif; background-color: #f8f9fa;">
@@ -38,7 +33,7 @@ def make_html_body(event_name: str, event_version: str, hello_text: str | None) 
                             </div>
                             <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee; text-align: center;">
                                 <p style="color: #666; font-size: 14px; margin: 0;">
-                                    {event_version_name_mapping[event_version]}
+                                    {organization_name}
                                 </p>
                             </div>
                         </div>
