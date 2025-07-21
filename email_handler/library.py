@@ -13,6 +13,7 @@ def routing_text_by_event_version(event_version: str) -> str:
     return announcement_text.get(event_version, "")
 
 def make_html_body(event_name: str, event_version: str, organization_name: str, hello_text: str | None) -> str:
+    print(f"{routing_text_by_event_version(event_version)}")
     body_html = f"""
             <html>
             <body style="font-family: Arial, sans-serif; background-color: #f8f9fa;">

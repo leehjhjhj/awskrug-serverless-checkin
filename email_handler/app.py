@@ -40,6 +40,7 @@ def lambda_handler(event, context):
             name = new_image.get('name', {}).get('S')
             event_code = new_image.get('event_code', {}).get('S')
             event: Event = get_event(event_code)
+            print(event.organization_code, event.event_version)
             organization: EventOrganization = get_organization(event.organization_code)
 
             hello_text = f"안녕하세요 {name}님!<br>" if event.event_name else ""
