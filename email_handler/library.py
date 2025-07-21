@@ -10,7 +10,11 @@ def routing_text_by_event_version(event_version: str) -> str:
             https://ausg.me 에서 리쿠르팅이 진행되고 있으니 잊지 마세요!
             """
     }
-    return announcement_text.get(event_version, "")
+    default_text = """
+        오늘 재밌게 들으셨나요? 😁 <br>
+        다음에도 꼭 와주세요!! 🙇‍♂️
+    """
+    return announcement_text.get(event_version, default_text)
 
 def make_html_body(event_name: str, event_version: str, organization_name: str, hello_text: str | None) -> str:
     print(f"{routing_text_by_event_version(event_version)}")
