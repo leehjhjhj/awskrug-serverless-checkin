@@ -200,6 +200,8 @@ Resources:
         - AmazonSSMReadOnlyAccess
         - DynamoDBCrudPolicy:
             TableName: !Sub ${NowEnvironment}-event
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${NowEnvironment}-event-organization
         - Statement:
             - Effect: Allow
               Action:
