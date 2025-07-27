@@ -67,7 +67,7 @@ const GroupForm = () => {
               organization_code: orgData.organization_code,
               organization_name: orgData.organization_name,
               description: orgData.organization_name, // Use name as description
-              logo_url: 'https://via.placeholder.com/150', // Default logo
+              logo_url: orgData.full_logo_url || 'https://via.placeholder.com/150', // Use full_logo_url or fallback to placeholder
               event_version: orgData.event_version || []
             });
           }
@@ -136,8 +136,7 @@ const GroupForm = () => {
         const updateData = {
           organization_code: formData.organization_code,
           organization_name: formData.organization_name,
-          event_version: formData.event_version,
-          logo_url: formData.logo_url
+          event_version: formData.event_version
         };
         
         await organizationService.updateOrganization(updateData);
@@ -231,16 +230,6 @@ const GroupForm = () => {
               />
             </Grid>
             
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="로고 URL"
-                name="logo_url"
-                value={formData.logo_url}
-                onChange={handleChange}
-                helperText="로고 이미지의 URL을 입력하세요"
-              />
-            </Grid>
             
             <Grid item xs={12}>
               <Divider sx={{ my: 2 }} />

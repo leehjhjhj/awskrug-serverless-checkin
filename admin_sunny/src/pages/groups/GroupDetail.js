@@ -81,7 +81,7 @@ const GroupDetail = () => {
             group_name: orgData.organization_name,
             description: orgData.organization_name, // Use name as description
             created_at: new Date().toISOString(), // Default created date
-            logo_url: 'https://via.placeholder.com/150', // Default logo
+            logo_url: orgData.full_logo_url || 'https://via.placeholder.com/150', // Use full_logo_url or fallback to placeholder
             event_count: orgData.event_version ? orgData.event_version.length : 0,
             member_count: 0 // Default member count
           };

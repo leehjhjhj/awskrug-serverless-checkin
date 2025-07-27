@@ -62,7 +62,7 @@ const GroupList = () => {
             group_name: org.organization_name,
             description: org.organization_name, // Use name as description since API doesn't provide description
             created_at: new Date().toISOString(), // Default created date
-            logo_url: 'https://via.placeholder.com/150', // Default logo
+            logo_url: org.full_logo_url || 'https://via.placeholder.com/150', // Use full_logo_url or fallback to placeholder
             event_count: org.event_version ? org.event_version.length : 0, // Count available event versions
             member_count: 0 // Default member count
           }));
