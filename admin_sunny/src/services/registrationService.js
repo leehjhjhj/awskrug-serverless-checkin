@@ -5,58 +5,94 @@ import { mockRegistrations } from './mockData';
 const registrationService = {
   // Get all registrations for an event
   getRegistrations: async (eventCode) => {
-    if (config.USE_MOCK_DATA) {
-      console.log('Using mock registration data');
-      const registrations = mockRegistrations[eventCode] || [];
-      return registrations;
-    }
+    console.log('Fetching registrations for event:', eventCode);
     
-    const response = await api.get(`/admin/event/${eventCode}/registrations`);
-    return response.data;
+    try {
+      const response = await api.get('/registration/list', { params: { event_code: eventCode } });
+      console.log('Registration list API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Registration list API error:', error);
+      // Fallback to mock data if API fails
+      if (config.USE_MOCK_DATA) {
+        console.log('Falling back to mock registration data');
+        const registrations = mockRegistrations[eventCode] || [];
+        return registrations;
+      }
+      throw error;
+    }
   },
+
 
   // Add a single registration to an event
   addRegistration: async (eventCode, registrationData) => {
-    if (config.USE_MOCK_DATA) {
-      console.log('Using mock registration data');
-      // Generate a random hash for phone
-      const hash = 'hash' + Math.floor(Math.random() * 1000);
-      const newRegistration = {
-        ...registrationData,
-        phone: hash
+    console.log('Adding registration for event:', eventCode, registrationData);
+    
+    try {
+      const payload = {
+        partition_key: eventCode,
+        sort_key: registrationData.phone,
+        name: registrationData.name,
+        email: registrationData.email
       };
       
-      if (!mockRegistrations[eventCode]) {
-        mockRegistrations[eventCode] = [];
+      const response = await api.post('/registration', payload);
+      console.log('Add registration API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Add registration API error:', error);
+      // Fallback to mock data if API fails
+      if (config.USE_MOCK_DATA) {
+        console.log('Falling back to mock registration data');
+        const hash = 'hash' + Math.floor(Math.random() * 1000);
+        const newRegistration = {
+          ...registrationData,
+          phone: hash
+        };
+        
+        if (!mockRegistrations[eventCode]) {
+          mockRegistrations[eventCode] = [];
+        }
+        
+        mockRegistrations[eventCode].push(newRegistration);
+        return { ...newRegistration, event_code: eventCode };
       }
-      
-      mockRegistrations[eventCode].push(newRegistration);
-      return { ...newRegistration, event_code: eventCode };
+      throw error;
     }
-    
-    const response = await api.post(`/admin/event/${eventCode}/registration`, registrationData);
-    return response.data;
   },
 
   // Delete a registration
   deleteRegistration: async (eventCode, phone) => {
-    if (config.USE_MOCK_DATA) {
-      console.log('Using mock registration data');
-      if (!mockRegistrations[eventCode]) {
-        throw new Error('Event not found');
-      }
-      
-      const index = mockRegistrations[eventCode].findIndex(r => r.phone === phone);
-      if (index === -1) {
-        throw new Error('Registration not found');
-      }
-      
-      mockRegistrations[eventCode].splice(index, 1);
-      return { message: '등록이 성공적으로 삭제되었습니다' };
-    }
+    console.log('Deleting registration for event:', eventCode, 'phone:', phone);
     
-    const response = await api.delete(`/admin/event/${eventCode}/registration/${phone}`);
-    return response.data;
+    try {
+      const payload = {
+        event_code: eventCode,
+        phone: phone
+      };
+      
+      const response = await api.delete('/registration', { data: payload });
+      console.log('Delete registration API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Delete registration API error:', error);
+      // Fallback to mock data if API fails
+      if (config.USE_MOCK_DATA) {
+        console.log('Falling back to mock registration data');
+        if (!mockRegistrations[eventCode]) {
+          throw new Error('Event not found');
+        }
+        
+        const index = mockRegistrations[eventCode].findIndex(r => r.phone === phone);
+        if (index === -1) {
+          throw new Error('Registration not found');
+        }
+        
+        mockRegistrations[eventCode].splice(index, 1);
+        return { message: '등록이 성공적으로 삭제되었습니다' };
+      }
+      throw error;
+    }
   },
 
   // Upload registrations via Excel file
@@ -91,7 +127,7 @@ const registrationService = {
     formData.append('file', file);
     formData.append('event_code', eventCode);
     
-    const response = await api.post('/admin/registration/upload', formData, {
+    const response = await api.post('/registration/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -103,7 +139,47 @@ const registrationService = {
   downloadTemplate: () => {
     // This would typically be a static file or generated on the server
     // For now, we'll just return a URL to a template file
-    return `${api.defaults.baseURL}/admin/registration/template`;
+    return `${api.defaults.baseURL}/registration/template`;
+  },
+
+  // Update a registration
+  updateRegistration: async (eventCode, phone, registrationData) => {
+    console.log('Updating registration for event:', eventCode, 'phone:', phone, registrationData);
+    
+    try {
+      const payload = {
+        partition_key: eventCode,
+        sort_key: phone,
+        name: registrationData.name,
+        email: registrationData.email
+      };
+      
+      const response = await api.put('/registration', payload);
+      console.log('Update registration API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Update registration API error:', error);
+      // Fallback to mock data if API fails
+      if (config.USE_MOCK_DATA) {
+        console.log('Falling back to mock registration data');
+        if (!mockRegistrations[eventCode]) {
+          throw new Error('Event not found');
+        }
+        
+        const index = mockRegistrations[eventCode].findIndex(r => r.phone === phone);
+        if (index === -1) {
+          throw new Error('Registration not found');
+        }
+        
+        mockRegistrations[eventCode][index] = {
+          ...mockRegistrations[eventCode][index],
+          ...registrationData
+        };
+        
+        return { ...mockRegistrations[eventCode][index], event_code: eventCode };
+      }
+      throw error;
+    }
   }
 };
 

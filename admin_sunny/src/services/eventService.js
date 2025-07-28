@@ -43,22 +43,8 @@ const mockEvents = [
 // 모든 이벤트 목록 조회
 export const getAllEvents = async (groupCode = null) => {
   try {
-    // 실제 API 연동 시 아래 주석 해제
-    // const params = groupCode ? { group_code: groupCode } : {};
-    // const response = await api.get('/events', { params });
-    // return response.data;
-    
-    // Mock data 사용
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (groupCode) {
-          const filteredEvents = mockEvents.filter(event => event.group_code === groupCode);
-          resolve(filteredEvents);
-        } else {
-          resolve(mockEvents);
-        }
-      }, 300);
-    });
+    const response = await api.get('/event');
+    return response.data;
   } catch (error) {
     console.error('Error fetching events:', error);
     throw error;
@@ -68,21 +54,8 @@ export const getAllEvents = async (groupCode = null) => {
 // 특정 이벤트 상세 정보 조회
 export const getEventByCode = async (eventCode) => {
   try {
-    // 실제 API 연동 시 아래 주석 해제
-    // const response = await api.get(`/events/${eventCode}`);
-    // return response.data;
-    
-    // Mock data 사용
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const event = mockEvents.find(e => e.event_code === eventCode);
-        if (event) {
-          resolve(event);
-        } else {
-          reject(new Error('Event not found'));
-        }
-      }, 300);
-    });
+    const response = await api.get(`/event/${eventCode}`);
+    return response.data;
   } catch (error) {
     console.error(`Error fetching event ${eventCode}:`, error);
     throw error;
@@ -92,22 +65,8 @@ export const getEventByCode = async (eventCode) => {
 // 새 이벤트 생성
 export const createEvent = async (eventData) => {
   try {
-    // 실제 API 연동 시 아래 주석 해제
-    // const response = await api.post('/events', eventData);
-    // return response.data;
-    
-    // Mock data 사용
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('Creating event:', eventData);
-        resolve({
-          ...eventData,
-          qr_url: 'https://via.placeholder.com/150',
-          registrations: 0,
-          checkins: 0
-        });
-      }, 500);
-    });
+    const response = await api.post('/event', eventData);
+    return response.data;
   } catch (error) {
     console.error('Error creating event:', error);
     throw error;
@@ -117,27 +76,8 @@ export const createEvent = async (eventData) => {
 // 이벤트 정보 업데이트
 export const updateEvent = async (eventCode, eventData) => {
   try {
-    // 실제 API 연동 시 아래 주석 해제
-    // const response = await api.put(`/events/${eventCode}`, eventData);
-    // return response.data;
-    
-    // Mock data 사용
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const eventIndex = mockEvents.findIndex(e => e.event_code === eventCode);
-        if (eventIndex !== -1) {
-          const updatedEvent = {
-            ...mockEvents[eventIndex],
-            ...eventData,
-            event_code: eventCode // 코드는 변경 불가
-          };
-          console.log('Updating event:', updatedEvent);
-          resolve(updatedEvent);
-        } else {
-          reject(new Error('Event not found'));
-        }
-      }, 500);
-    });
+    const response = await api.put('/event', { ...eventData, event_code: eventCode });
+    return response.data;
   } catch (error) {
     console.error(`Error updating event ${eventCode}:`, error);
     throw error;
@@ -147,22 +87,8 @@ export const updateEvent = async (eventCode, eventData) => {
 // 이벤트 삭제
 export const deleteEvent = async (eventCode) => {
   try {
-    // 실제 API 연동 시 아래 주석 해제
-    // await api.delete(`/events/${eventCode}`);
-    // return true;
-    
-    // Mock data 사용
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const eventIndex = mockEvents.findIndex(e => e.event_code === eventCode);
-        if (eventIndex !== -1) {
-          console.log(`Deleting event ${eventCode}`);
-          resolve(true);
-        } else {
-          reject(new Error('Event not found'));
-        }
-      }, 500);
-    });
+    await api.delete('/event', { data: { event_code: eventCode } });
+    return true;
   } catch (error) {
     console.error(`Error deleting event ${eventCode}:`, error);
     throw error;

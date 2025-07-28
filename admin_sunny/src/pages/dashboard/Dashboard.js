@@ -25,6 +25,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import GroupsIcon from '@mui/icons-material/Groups';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import AddIcon from '@mui/icons-material/Add';
+import eventService from '../../services/eventService';
 
 // Mock data for groups
 const mockGroups = [
@@ -107,23 +108,86 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API calls
+    let cancelled = false;
+    
     const fetchData = async () => {
+      if (cancelled) return;
+      
       try {
-        // In a real app, these would be API calls
-        setTimeout(() => {
+        setLoading(true);
+        // Fetch real events data
+        const eventsData = await eventService.getAllEvents();
+        
+        if (!cancelled) {
+          const events = eventsData.events || [];
+          
+          // Group events by organization
+          const organizationGroups = {};
+          events.forEach(event => {
+            if (!organizationGroups[event.organization_code]) {
+              organizationGroups[event.organization_code] = {
+                group_code: event.organization_code,
+                group_name: event.organization_code.toUpperCase(),
+                event_count: 0,
+                member_count: 0 // This would need a separate API
+              };
+            }
+            organizationGroups[event.organization_code].event_count++;
+          });
+          
+          // Convert to array
+          const groupsArray = Object.values(organizationGroups);
+          
+          // Sort events by date
+          const sortedEvents = events.sort((a, b) => new Date(b.event_date_time) - new Date(a.event_date_time));
+          const now = new Date();
+          
+          // Separate recent and upcoming events
+          const recentEventsList = sortedEvents
+            .filter(event => new Date(event.event_date_time) < now)
+            .slice(0, 6)
+            .map(event => ({
+              ...event,
+              group_name: event.organization_code.toUpperCase(),
+              group_code: event.organization_code,
+              registrations: 0, // Would need registration API
+              checkins: 0 // Would need checkin API
+            }));
+            
+          const upcomingEventsList = sortedEvents
+            .filter(event => new Date(event.event_date_time) >= now)
+            .slice(0, 5)
+            .map(event => ({
+              ...event,
+              group_name: event.organization_code.toUpperCase(),
+              group_code: event.organization_code,
+              registrations: 0 // Would need registration API
+            }));
+          
+          setGroups(groupsArray);
+          setRecentEvents(recentEventsList);
+          setUpcomingEvents(upcomingEventsList);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        if (!cancelled) {
+          // Fallback to mock data
           setGroups(mockGroups);
           setRecentEvents(mockRecentEvents);
           setUpcomingEvents(mockUpcomingEvents);
+        }
+      } finally {
+        if (!cancelled) {
           setLoading(false);
-        }, 500);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        setLoading(false);
+        }
       }
     };
 
     fetchData();
+    
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleGroupChange = (event) => {

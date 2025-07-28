@@ -18,6 +18,8 @@ import ExcelUpload from './pages/upload/ExcelUpload';
 import EventList from './pages/events/EventList';
 import EventForm from './pages/events/EventForm';
 import EventDetail from './pages/events/EventDetail';
+import EventRegistrations from './pages/events/EventRegistrations';
+import EventCheckins from './pages/events/EventCheckins';
 import RegistrationList from './pages/registrations/RegistrationList';
 import CheckinList from './pages/checkins/CheckinList';
 import EventStats from './pages/stats/EventStats';
@@ -134,13 +136,14 @@ function App() {
               </ProtectedRoute>
             } />
             
-            <Route path="/groups/:groupCode/stats" element={
+            {/* 그룹 통계 라우트 임시 비활성화 */}
+            {/* <Route path="/groups/:groupCode/stats" element={
               <ProtectedRoute>
                 <Layout>
                   <GroupStats />
                 </Layout>
               </ProtectedRoute>
-            } />
+            } /> */}
             
             {/* 이벤트 관련 라우트 */}
             <Route path="/events" element={
@@ -178,7 +181,7 @@ function App() {
             <Route path="/events/:eventCode/registrations" element={
               <ProtectedRoute>
                 <Layout>
-                  <RegistrationList />
+                  <EventRegistrations />
                 </Layout>
               </ProtectedRoute>
             } />
@@ -186,7 +189,7 @@ function App() {
             <Route path="/events/:eventCode/checkins" element={
               <ProtectedRoute>
                 <Layout>
-                  <CheckinList />
+                  <EventCheckins />
                 </Layout>
               </ProtectedRoute>
             } />
@@ -199,13 +202,14 @@ function App() {
               </ProtectedRoute>
             } />
             
-            <Route path="/stats" element={
+            {/* 글로벌 통계 라우트 임시 비활성화 */}
+            {/* <Route path="/stats" element={
               <ProtectedRoute>
                 <Layout>
                   <GlobalStats />
                 </Layout>
               </ProtectedRoute>
-            } />
+            } /> */}
             
             <Route path="/upload" element={
               <ProtectedRoute>

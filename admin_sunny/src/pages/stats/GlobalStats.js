@@ -33,24 +33,40 @@ const GlobalStats = () => {
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    let cancelled = false;
+    
+    const fetchEvents = async () => {
+      if (cancelled) return;
+      
+      try {
+        setLoading(true);
+        const data = await eventService.getAllEvents();
+        
+        if (!cancelled) {
+          setEvents(data.events || []);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to fetch events for stats:', error);
+          setAlert({
+            open: true,
+            message: '이벤트 정보를 불러오는데 실패했습니다.',
+            severity: 'error'
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
 
-  const fetchEvents = async () => {
-    try {
-      setLoading(true);
-      const data = await eventService.getAllEvents();
-      setEvents(data);
-    } catch (error) {
-      setAlert({
-        open: true,
-        message: '이벤트 정보를 불러오는데 실패했습니다.',
-        severity: 'error'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchEvents();
+    
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleExport = async (format) => {
     try {
@@ -87,19 +103,18 @@ const GlobalStats = () => {
     }
   };
 
-  // 차트 데이터 준비
+  // 차트 데이터 준비 - 실제 데이터가 없으므로 이벤트명과 기본값으로 표시
   const chartData = {
-    labels: events.map(event => event.event_name),
+    labels: events.slice(0, 10).map(event => 
+      event.event_name.length > 20 
+        ? event.event_name.substring(0, 20) + '...' 
+        : event.event_name
+    ),
     datasets: [
       {
-        label: '등록자 수',
-        data: events.map(event => Math.floor(Math.random() * 50) + 10), // 실제 데이터로 대체 필요
+        label: '이벤트 수',
+        data: events.slice(0, 10).map(() => 1),
         backgroundColor: 'rgba(54, 162, 235, 0.5)',
-      },
-      {
-        label: '체크인 수',
-        data: events.map(event => Math.floor(Math.random() * 40) + 5), // 실제 데이터로 대체 필요
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
       }
     ],
   };
@@ -156,20 +171,20 @@ const GlobalStats = () => {
               </Grid>
               <Grid item xs={4}>
                 <Typography variant="body2" color="text.secondary">
-                  총 등록자 수
+                  총 조직 수
                 </Typography>
                 <Typography variant="h4" color="secondary">
-                  {/* 실제 데이터로 대체 필요 */}
-                  {events.reduce((sum, event) => sum + (Math.floor(Math.random() * 50) + 10), 0)}
+                  {new Set(events.map(event => event.organization_code)).size}
                 </Typography>
               </Grid>
               <Grid item xs={4}>
                 <Typography variant="body2" color="text.secondary">
-                  총 체크인 수
+                  최근 이벤트
                 </Typography>
                 <Typography variant="h4" color="info.main">
-                  {/* 실제 데이터로 대체 필요 */}
-                  {events.reduce((sum, event) => sum + (Math.floor(Math.random() * 40) + 5), 0)}
+                  {events.filter(event => 
+                    new Date(event.event_date_time) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+                  ).length}
                 </Typography>
               </Grid>
             </Grid>
@@ -179,7 +194,7 @@ const GlobalStats = () => {
         <Grid item xs={12}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              이벤트별 등록자 및 체크인 현황
+              최근 이벤트 현황
             </Typography>
             <Box sx={{ height: 400 }}>
               <Bar 
@@ -193,7 +208,7 @@ const GlobalStats = () => {
                     },
                     title: {
                       display: true,
-                      text: '이벤트별 참가 현황'
+                      text: '최근 등록된 이벤트 목록'
                     },
                   },
                 }}
