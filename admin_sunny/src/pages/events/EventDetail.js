@@ -22,7 +22,7 @@ const EventDetail = () => {
   const fetchEvent = async () => {
     try {
       setLoading(true);
-      const data = await eventService.getEvent(eventCode);
+      const data = await eventService.getEventByCode(eventCode);
       setEvent(data);
     } catch (error) {
       setAlert({
@@ -119,6 +119,10 @@ const EventDetail = () => {
             <Grid item xs={12} md={6}>
               <Typography variant="subtitle1" fontWeight="bold">이벤트 버전</Typography>
               <Typography variant="body1">{event.event_version}</Typography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle1" fontWeight="bold">조직 코드</Typography>
+              <Typography variant="body1">{event.organization_code}</Typography>
             </Grid>
             
             <Grid item xs={12}>

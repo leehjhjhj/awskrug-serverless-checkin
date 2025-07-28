@@ -15,18 +15,23 @@ import {
   FormHelperText,
   Alert,
   Checkbox,
-  FormControlLabel
+  FormControlLabel,
+  Autocomplete
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import SaveIcon from '@mui/icons-material/Save';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import eventService from '../../services/eventService';
+import organizationService from '../../services/organizationService';
 
-// Mock data for groups
-const mockGroups = [
-  { group_code: 'awskrug', group_name: 'AWS 한국 사용자 모임' },
-  { group_code: 'ausg', group_name: 'AWSKRUG 대학생 모임' },
-  { group_code: 'serverless', group_name: 'Serverless Korea' }
+// Mock data for organizations
+const mockOrganizations = [
+  { code: 'awskrug', name: 'AWS 한국 사용자 모임', description: 'AWS 기술 공유 및 네트워킹' },
+  { code: 'ausg', name: 'AWSKRUG 대학생 모임', description: '대학생을 위한 AWS 학습 그룹' },
+  { code: 'sls', name: 'Serverless Korea', description: '서버리스 기술 전문 커뮤니티' },
+  { code: 'devops', name: 'DevOps Korea', description: 'DevOps 실무진 모임' },
+  { code: 'data', name: 'Data Engineering Korea', description: '데이터 엔지니어링 전문가 그룹' }
 ];
 
 // Mock data for a single event
@@ -46,59 +51,90 @@ const EventForm = () => {
   const isEditMode = !!eventCode;
   
   const [formData, setFormData] = useState({
-    event_code: '',
     event_name: '',
-    group_code: '',
+    organization_code: '',
     event_date_time: dayjs(),
     code_expired_at: dayjs().add(3, 'hour'),
     description: '',
-    qr_url: ''
+    event_version: '1'
   });
   
-  const [groups, setGroups] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
+  const [selectedOrganization, setSelectedOrganization] = useState(null);
+  const [organizationDetail, setOrganizationDetail] = useState(null);
+  const [availableEventVersions, setAvailableEventVersions] = useState([]);
   const [loading, setLoading] = useState(isEditMode);
+  const [loadingOrganization, setLoadingOrganization] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [autoExpire, setAutoExpire] = useState(true);
 
   useEffect(() => {
-    // Fetch groups
-    const fetchGroups = async () => {
+    let cancelled = false;
+    
+    // Fetch organizations
+    const fetchOrganizations = async () => {
+      if (cancelled) return;
+      
       try {
-        // In a real app, this would be an API call
-        setTimeout(() => {
-          setGroups(mockGroups);
-        }, 300);
+        const organizationsData = await organizationService.getAllOrganizations();
+        
+        if (!cancelled) {
+          // Transform API response to match our component structure
+          const transformedOrgs = organizationsData.map(org => ({
+            code: org.organization_code,
+            name: org.organization_name,
+            description: org.organization_name // Use name as description for now
+          }));
+          setOrganizations(transformedOrgs);
+        }
       } catch (error) {
-        console.error('Error fetching groups:', error);
+        if (!cancelled) {
+          console.error('Error fetching organizations:', error);
+          // Fallback to mock data
+          setOrganizations(mockOrganizations);
+        }
       }
     };
 
-    fetchGroups();
+    fetchOrganizations();
 
     // If in edit mode, fetch event data
     if (isEditMode) {
       const fetchEvent = async () => {
+        if (cancelled) return;
+        
         try {
-          // In a real app, this would be an API call
-          setTimeout(() => {
-            const event = {
-              ...mockEvent,
-              event_date_time: dayjs(mockEvent.event_date_time),
-              code_expired_at: dayjs(mockEvent.code_expired_at)
-            };
-            setFormData(event);
+          const eventData = await eventService.getEventByCode(eventCode);
+          
+          if (!cancelled) {
+            const orgData = mockOrganizations.find(org => org.code === eventData.organization_code);
+            setSelectedOrganization(orgData);
+            setFormData({
+              event_name: eventData.event_name,
+              organization_code: eventData.organization_code,
+              event_date_time: dayjs(eventData.event_date_time),
+              code_expired_at: dayjs(eventData.code_expired_at),
+              description: eventData.description,
+              event_version: eventData.event_version
+            });
             setLoading(false);
-          }, 500);
+          }
         } catch (error) {
-          console.error('Error fetching event:', error);
-          setError('이벤트 정보를 불러오는데 실패했습니다.');
-          setLoading(false);
+          if (!cancelled) {
+            console.error('Error fetching event:', error);
+            setError('이벤트 정보를 불러오는데 실패했습니다.');
+            setLoading(false);
+          }
         }
       };
 
       fetchEvent();
     }
+    
+    return () => {
+      cancelled = true;
+    };
   }, [isEditMode, eventCode]);
 
   const handleChange = (e) => {
@@ -107,6 +143,42 @@ const EventForm = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleOrganizationChange = async (event, newValue) => {
+    setSelectedOrganization(newValue);
+    setFormData(prev => ({
+      ...prev,
+      organization_code: newValue ? newValue.code : '',
+      event_version: '1' // Reset to default when organization changes
+    }));
+    
+    // Clear previous organization detail and event versions
+    setOrganizationDetail(null);
+    setAvailableEventVersions([]);
+    
+    // Fetch organization detail if selected
+    if (newValue && newValue.code) {
+      try {
+        setLoadingOrganization(true);
+        const orgDetail = await organizationService.getOrganization(newValue.code);
+        setOrganizationDetail(orgDetail);
+        setAvailableEventVersions(orgDetail.event_version || []);
+        
+        // Set the first available event version as default
+        if (orgDetail.event_version && orgDetail.event_version.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            event_version: orgDetail.event_version[0]
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching organization detail:', error);
+        setError('조직 정보를 불러오는데 실패했습니다.');
+      } finally {
+        setLoadingOrganization(false);
+      }
+    }
   };
 
   const handleDateChange = (name, value) => {
@@ -142,10 +214,29 @@ const EventForm = () => {
     setError(null);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Prepare payload according to API spec
+      const payload = {
+        event_date_time: formData.event_date_time.toISOString(),
+        code_expired_at: formData.code_expired_at.toISOString(),
+        description: formData.description,
+        event_name: formData.event_name,
+        event_version: formData.event_version,
+        organization_code: formData.organization_code
+      };
       
-      console.log('Form submitted:', formData);
+      let result;
+      if (isEditMode) {
+        // For update, we need to include event_code in the payload
+        result = await eventService.updateEvent(eventCode, {
+          ...payload,
+          event_code: eventCode
+        });
+      } else {
+        // For create, event_code will be generated by the API
+        result = await eventService.createEvent(payload);
+      }
+      
+      console.log('Event saved successfully:', result);
       setSuccess(true);
       
       // Redirect after successful submission
@@ -154,7 +245,7 @@ const EventForm = () => {
       }, 1500);
     } catch (error) {
       console.error('Error submitting form:', error);
-      setError('이벤트 저장에 실패했습니다. 다시 시도해주세요.');
+      setError(error.message || '이벤트 저장에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }
@@ -193,20 +284,7 @@ const EventForm = () => {
 
         <Box component="form" onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                required
-                fullWidth
-                label="이벤트 코드"
-                name="event_code"
-                value={formData.event_code}
-                onChange={handleChange}
-                disabled={isEditMode}
-                helperText={isEditMode ? "이벤트 코드는 수정할 수 없습니다" : "영문, 숫자, 하이픈만 사용 가능"}
-              />
-            </Grid>
-            
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <TextField
                 required
                 fullWidth
@@ -218,22 +296,47 @@ const EventForm = () => {
             </Grid>
             
             <Grid item xs={12}>
-              <FormControl fullWidth required>
-                <InputLabel>소모임</InputLabel>
-                <Select
-                  name="group_code"
-                  value={formData.group_code}
-                  label="소모임"
-                  onChange={handleChange}
-                >
-                  {groups.map((group) => (
-                    <MenuItem key={group.group_code} value={group.group_code}>
-                      {group.group_name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                <FormHelperText>이벤트가 속한 소모임을 선택하세요</FormHelperText>
-              </FormControl>
+              <Autocomplete
+                fullWidth
+                options={organizations}
+                getOptionLabel={(option) => option.name || ''}
+                value={selectedOrganization}
+                onChange={handleOrganizationChange}
+                disabled={loading}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="조직 검색 및 선택"
+                    placeholder="조직명으로 검색하세요..."
+                    variant="outlined"
+                    required
+                  />
+                )}
+                renderOption={(props, option) => (
+                  <Box component="li" {...props}>
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography variant="body1">
+                        {option.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {option.code} | {option.description}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+                filterOptions={(options, { inputValue }) => {
+                  const filterValue = inputValue.toLowerCase();
+                  return options.filter(option => 
+                    option.name.toLowerCase().includes(filterValue) ||
+                    option.code.toLowerCase().includes(filterValue) ||
+                    option.description.toLowerCase().includes(filterValue)
+                  );
+                }}
+                noOptionsText="검색 결과가 없습니다"
+                loadingText="조직을 불러오는 중..."
+                loading={loading && organizations.length === 0}
+              />
+              <FormHelperText>이벤트가 속한 조직을 선택하세요</FormHelperText>
             </Grid>
             
             <Grid item xs={12} sm={6}>
@@ -285,7 +388,38 @@ const EventForm = () => {
                 onChange={handleChange}
                 multiline
                 rows={3}
+                required
               />
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required>
+                <InputLabel id="event-version-label">이벤트 버전</InputLabel>
+                <Select
+                  labelId="event-version-label"
+                  id="event-version-select"
+                  label="이벤트 버전"
+                  name="event_version"
+                  value={formData.event_version}
+                  onChange={handleChange}
+                  disabled={!selectedOrganization || availableEventVersions.length === 0}
+                >
+                  {availableEventVersions.map((version) => (
+                    <MenuItem key={version} value={version}>
+                      {version}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>
+                  {selectedOrganization 
+                    ? (availableEventVersions.length > 0 
+                        ? `${availableEventVersions.length}개의 버전 사용 가능` 
+                        : loadingOrganization 
+                          ? "조직 정보를 불러오는 중..." 
+                          : "사용 가능한 버전이 없습니다")
+                    : "먼저 조직을 선택하세요"}
+                </FormHelperText>
+              </FormControl>
             </Grid>
             
             <Grid item xs={12}>
