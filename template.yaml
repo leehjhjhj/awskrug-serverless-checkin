@@ -132,14 +132,27 @@ Resources:
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonSSMReadOnlyAccess
+        - Statement:
+          - Effect: Allow
+            Action:
+              - dsql:*
+            Resource: '*'
         - S3ReadPolicy:
             BucketName: !Sub '{{resolve:ssm:/${NowEnvironment}/csv-s3}}'
-        - DynamoDBCrudPolicy:
-            TableName: !Sub ${NowEnvironment}-event-registration
       Environment:
         Variables:
           TZ: Asia/Seoul
           ENV: !Sub ${NowEnvironment}
+          CLIENT_URL: !Sub '{{resolve:ssm:/${NowEnvironment}/client-url}}'
+          QR_S3_BUCKET_NAME: !Sub '{{resolve:ssm:/${NowEnvironment}/qr-s3}}'
+          SMTP_USERNAME: !Sub '{{resolve:ssm:/${NowEnvironment}/smtp-username}}'
+          SMTP_PASSWORD: !Sub '{{resolve:ssm:/${NowEnvironment}/smtp-password}}'
+          SALT: !Sub '{{resolve:ssm:/${NowEnvironment}/salt}}'
+          CLUSTER_ARN: !Sub '{{resolve:ssm:/${NowEnvironment}/cluster-arn}}'
+          CLUSTER_ENDPOINT: !Sub '{{resolve:ssm:/${NowEnvironment}/cluster-endpoint}}'
+          DB_USER: !Sub '{{resolve:ssm:/${NowEnvironment}/db-user}}'
+          DB_NAME: !Sub '{{resolve:ssm:/${NowEnvironment}/db-name}}'
+          REGION: !Sub '{{resolve:ssm:/${NowEnvironment}/region}}'
       Events:
         CSVUploadEvent:
           Type: S3
@@ -161,21 +174,31 @@ Resources:
       CodeUri: api_handler/
       Handler: app.lambda_handler
       Runtime: python3.11
+      MemorySize: 1024
       Architectures:
         - x86_64
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonSSMReadOnlyAccess
-        - DynamoDBCrudPolicy:
-            TableName: !Sub ${NowEnvironment}-event-registration
-        - DynamoDBCrudPolicy:
-            TableName: !Sub ${NowEnvironment}-event
-        - DynamoDBCrudPolicy:
-            TableName: !Sub ${NowEnvironment}-event-checkin
+        - Statement:
+          - Effect: Allow
+            Action:
+              - dsql:*
+            Resource: '*'
       Environment:
         Variables:
           TZ: Asia/Seoul
           ENV: !Sub ${NowEnvironment}
+          CLIENT_URL: !Sub '{{resolve:ssm:/${NowEnvironment}/client-url}}'
+          QR_S3_BUCKET_NAME: !Sub '{{resolve:ssm:/${NowEnvironment}/qr-s3}}'
+          SMTP_USERNAME: !Sub '{{resolve:ssm:/${NowEnvironment}/smtp-username}}'
+          SMTP_PASSWORD: !Sub '{{resolve:ssm:/${NowEnvironment}/smtp-password}}'
+          SALT: !Sub '{{resolve:ssm:/${NowEnvironment}/salt}}'
+          CLUSTER_ARN: !Sub '{{resolve:ssm:/${NowEnvironment}/cluster-arn}}'
+          CLUSTER_ENDPOINT: !Sub '{{resolve:ssm:/${NowEnvironment}/cluster-endpoint}}'
+          DB_USER: !Sub '{{resolve:ssm:/${NowEnvironment}/db-user}}'
+          DB_NAME: !Sub '{{resolve:ssm:/${NowEnvironment}/db-name}}'
+          REGION: !Sub '{{resolve:ssm:/${NowEnvironment}/region}}'
       Events:
         ApiEvent:
           Type: Api
@@ -198,20 +221,25 @@ Resources:
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonSSMReadOnlyAccess
-        - DynamoDBCrudPolicy:
-            TableName: !Sub ${NowEnvironment}-event
-        - DynamoDBCrudPolicy:
-            TableName: !Sub ${NowEnvironment}-event-organization
         - Statement:
-            - Effect: Allow
-              Action:
-                - ses:SendEmail
-                - ses:SendRawEmail
-              Resource: "*"
+          - Effect: Allow
+            Action:
+              - dsql:*
+            Resource: '*'
       Environment:
         Variables:
           TZ: Asia/Seoul
           ENV: !Sub ${NowEnvironment}
+          CLIENT_URL: !Sub '{{resolve:ssm:/${NowEnvironment}/client-url}}'
+          QR_S3_BUCKET_NAME: !Sub '{{resolve:ssm:/${NowEnvironment}/qr-s3}}'
+          SMTP_USERNAME: !Sub '{{resolve:ssm:/${NowEnvironment}/smtp-username}}'
+          SMTP_PASSWORD: !Sub '{{resolve:ssm:/${NowEnvironment}/smtp-password}}'
+          SALT: !Sub '{{resolve:ssm:/${NowEnvironment}/salt}}'
+          CLUSTER_ARN: !Sub '{{resolve:ssm:/${NowEnvironment}/cluster-arn}}'
+          CLUSTER_ENDPOINT: !Sub '{{resolve:ssm:/${NowEnvironment}/cluster-endpoint}}'
+          DB_USER: !Sub '{{resolve:ssm:/${NowEnvironment}/db-user}}'
+          DB_NAME: !Sub '{{resolve:ssm:/${NowEnvironment}/db-name}}'
+          REGION: !Sub '{{resolve:ssm:/${NowEnvironment}/region}}'
       Layers:
         - !Ref CommonLayer
       Events:
@@ -234,14 +262,27 @@ Resources:
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonSSMReadOnlyAccess
-        - DynamoDBCrudPolicy:
-            TableName: !Sub ${NowEnvironment}-event
+        - Statement:
+          - Effect: Allow
+            Action:
+              - dsql:*
+            Resource: '*'
         - S3CrudPolicy:
             BucketName: !Sub '{{resolve:ssm:/${NowEnvironment}/qr-s3}}'
       Environment:
         Variables:
           TZ: Asia/Seoul
           ENV: !Sub ${NowEnvironment}
+          CLIENT_URL: !Sub '{{resolve:ssm:/${NowEnvironment}/client-url}}'
+          QR_S3_BUCKET_NAME: !Sub '{{resolve:ssm:/${NowEnvironment}/qr-s3}}'
+          SMTP_USERNAME: !Sub '{{resolve:ssm:/${NowEnvironment}/smtp-username}}'
+          SMTP_PASSWORD: !Sub '{{resolve:ssm:/${NowEnvironment}/smtp-password}}'
+          SALT: !Sub '{{resolve:ssm:/${NowEnvironment}/salt}}'
+          CLUSTER_ARN: !Sub '{{resolve:ssm:/${NowEnvironment}/cluster-arn}}'
+          CLUSTER_ENDPOINT: !Sub '{{resolve:ssm:/${NowEnvironment}/cluster-endpoint}}'
+          DB_USER: !Sub '{{resolve:ssm:/${NowEnvironment}/db-user}}'
+          DB_NAME: !Sub '{{resolve:ssm:/${NowEnvironment}/db-name}}'
+          REGION: !Sub '{{resolve:ssm:/${NowEnvironment}/region}}'
       Events:
         ApiEvent:
           Type: Api
@@ -269,7 +310,6 @@ Resources:
             RestApiId: !Ref ApiGateway
       Layers:
         - !Ref CommonLayer
-      
 Outputs:
   CommonLayer:
     Description: CommonLayer Lambda Layer ARN

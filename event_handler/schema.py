@@ -1,32 +1,56 @@
-from pydantic import BaseModel
+from dataclasses import dataclass
 from typing import Optional
-
 from datetime import datetime
 
-from model import Event
 
-class EventRequest(BaseModel):
+@dataclass
+class EventDTO:
+    """Event 조회용 Response DTO"""
+    event_code: str
+    event_date_time: datetime
+    event_name: str
+    code_expired_at: datetime
+    event_version: str
+    organization_code: str
+    description: Optional[str] = None
+    qr_url: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+@dataclass
+class EventRequest:
     event_date_time: datetime
     code_expired_at: datetime
     description: str
     event_name: str
     event_version: str
+    organization_code: str
 
-class EventPutRequest(BaseModel):
+
+@dataclass
+class EventPutRequest:
     event_code: str
     event_date_time: datetime
     code_expired_at: datetime
     description: str
     event_name: str
     event_version: str
+    organization_code: str
     qr_url: Optional[str] = None
 
-class EventDeleteRequest(BaseModel):
+
+@dataclass
+class EventDeleteRequest:
     event_code: str
 
-class EventResponse(BaseModel):
+
+@dataclass
+class EventResponse:
+    event_code: str
     qr_url: Optional[str] = None
-    event_code: str
 
-class EventListResponse(BaseModel):
-    events: list[Event]
+
+@dataclass
+class EventListResponse:
+    events: list[EventDTO]
