@@ -136,7 +136,7 @@ class EventRegistration(Base):
     __tablename__ = 'event_registration'
 
     event_code = Column(String(100), nullable=False)
-    phone = Column(String(20), nullable=False)
+    phone = Column(String(255), nullable=False)
     name = Column(String(255), nullable=True)
     created_at = Column(DateTime, server_default=func.current_timestamp())
     updated_at = Column(DateTime, server_default=func.current_timestamp(), onupdate=func.current_timestamp())
@@ -171,7 +171,7 @@ class EventCheckIn(Base):
     """
     __tablename__ = 'event_check_in'
 
-    phone = Column(String(20), nullable=False)
+    phone = Column(String(255), nullable=False)
     event_code = Column(String(100), nullable=False)
     name = Column(String(255), nullable=True)
     checked_at = Column(DateTime, nullable=False)
