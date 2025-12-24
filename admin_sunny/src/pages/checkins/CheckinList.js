@@ -86,19 +86,18 @@ const CheckinList = () => {
 
   const columns = [
     { field: 'name', headerName: '이름', width: 150 },
-    { 
-      field: 'phone', 
-      headerName: '전화번호', 
+    {
+      field: 'phone',
+      headerName: '전화번호',
       width: 200,
       valueFormatter: (params) => {
         // Display masked phone number
         return params.value ? '********' : '';
       }
     },
-    { field: 'email', headerName: '이메일', width: 250 },
-    { 
-      field: 'checked_at', 
-      headerName: '체크인 시간', 
+    {
+      field: 'checked_at',
+      headerName: '체크인 시간',
       width: 200,
       valueFormatter: (params) => {
         return params.value ? new Date(params.value).toLocaleString('ko-KR') : '';

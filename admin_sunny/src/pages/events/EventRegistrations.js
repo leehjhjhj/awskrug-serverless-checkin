@@ -32,7 +32,6 @@ const EventRegistrations = () => {
   const [editingRegistration, setEditingRegistration] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     phone: ''
   });
   const [snackbar, setSnackbar] = useState({
@@ -106,7 +105,6 @@ const EventRegistrations = () => {
     setEditingRegistration(registration);
     setFormData({
       name: registration?.name || '',
-      email: registration?.email || '',
       phone: registration?.phone || ''
     });
     setOpenDialog(true);
@@ -117,7 +115,6 @@ const EventRegistrations = () => {
     setEditingRegistration(null);
     setFormData({
       name: '',
-      email: '',
       phone: ''
     });
   };
@@ -179,7 +176,6 @@ const EventRegistrations = () => {
   const columns = [
     { field: 'phone', headerName: '전화번호', width: 150 },
     { field: 'name', headerName: '이름', width: 200 },
-    { field: 'email', headerName: '이메일', width: 250 },
     {
       field: 'actions',
       headerName: '작업',
@@ -259,16 +255,6 @@ const EventRegistrations = () => {
             variant="outlined"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="이메일"
-            type="email"
-            fullWidth
-            variant="outlined"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             sx={{ mb: 2 }}
           />
           <TextField

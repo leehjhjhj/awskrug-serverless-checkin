@@ -30,8 +30,8 @@ const registrationService = {
     
     try {
       const payload = {
-        partition_key: eventCode,
-        sort_key: registrationData.phone,
+        event_code: eventCode,
+        phone: registrationData.phone,
         name: registrationData.name,
         email: registrationData.email
       };
@@ -148,8 +148,8 @@ const registrationService = {
     
     try {
       const payload = {
-        partition_key: eventCode,
-        sort_key: phone,
+        event_code: eventCode,
+        phone: phone,
         name: registrationData.name,
         email: registrationData.email
       };
