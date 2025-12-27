@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Container,
   Typography,
@@ -48,18 +48,20 @@ const mockEvent = {
 const EventForm = () => {
   const { eventCode } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preselectedOrgCode = searchParams.get('org');
   const isEditMode = !!eventCode;
-  
+
   const [formData, setFormData] = useState({
     event_name: '',
-    organization_code: '',
+    organization_code: preselectedOrgCode || '',
     event_date_time: dayjs(),
     code_expired_at: dayjs().add(3, 'hour'),
     description: '',
     event_version: '1',
     qr_url: null
   });
-  
+
   const [organizations, setOrganizations] = useState([]);
   const [selectedOrganization, setSelectedOrganization] = useState(null);
   const [organizationDetail, setOrganizationDetail] = useState(null);
@@ -90,6 +92,30 @@ const EventForm = () => {
           description: org.organization_name // Use name as description for now
         }));
         setOrganizations(transformedOrgs);
+
+        // If there's a preselected org code, set it
+        if (preselectedOrgCode && !isEditMode) {
+          const preselectedOrg = transformedOrgs.find(org => org.code === preselectedOrgCode);
+          if (preselectedOrg) {
+            setSelectedOrganization(preselectedOrg);
+            // Fetch organization details
+            try {
+              const orgDetail = await organizationService.getOrganization(preselectedOrg.code);
+              setOrganizationDetail(orgDetail);
+              setAvailableEventVersions(orgDetail.event_version || []);
+
+              // Set the first available event version as default
+              if (orgDetail.event_version && orgDetail.event_version.length > 0) {
+                setFormData(prev => ({
+                  ...prev,
+                  event_version: orgDetail.event_version[0]
+                }));
+              }
+            } catch (error) {
+              console.error('Error fetching organization detail:', error);
+            }
+          }
+        }
 
         // If in edit mode, fetch event data after organizations are loaded
         if (isEditMode) {
@@ -251,10 +277,15 @@ const EventForm = () => {
       
       console.log('Event saved successfully:', result);
       setSuccess(true);
-      
+
       // Redirect after successful submission
       setTimeout(() => {
-        navigate('/events');
+        // If we have an organization code, navigate to filtered list
+        if (formData.organization_code) {
+          navigate(`/events?group=${formData.organization_code}`);
+        } else {
+          navigate('/events');
+        }
       }, 1500);
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -277,7 +308,14 @@ const EventForm = () => {
           </Typography>
           <Button
             startIcon={<ArrowBackIcon />}
-            onClick={() => navigate('/events')}
+            onClick={() => {
+              // Navigate back with filter if organization is selected
+              if (formData.organization_code) {
+                navigate(`/events?group=${formData.organization_code}`);
+              } else {
+                navigate('/events');
+              }
+            }}
           >
             목록으로
           </Button>

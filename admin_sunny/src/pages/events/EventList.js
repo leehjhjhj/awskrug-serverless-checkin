@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -8,7 +8,12 @@ import {
   IconButton,
   Tooltip,
   TextField,
-  InputAdornment
+  InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Chip
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
@@ -16,24 +21,42 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import eventService from '../../services/eventService';
+import organizationService from '../../services/organizationService';
 
 const EventList = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const organizationCode = searchParams.get('group');
   const [events, setEvents] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     let cancelled = false;
-    
-    const loadEvents = async () => {
+
+    const loadData = async () => {
       if (cancelled) return;
-      
+
       try {
         setLoading(true);
-        const data = await eventService.getAllEvents();
-        
+
+        // Load organizations for filter
+        const organizationsData = await organizationService.getAllOrganizations();
+        if (!cancelled) {
+          setOrganizations(organizationsData.map(org => ({
+            code: org.organization_code,
+            name: org.organization_name
+          })));
+        }
+
+        // Load events
+        const data = organizationCode
+          ? await eventService.getEventsByOrganization(organizationCode)
+          : await eventService.getAllEvents();
+
         if (!cancelled) {
           const eventList = data.events || [];
           setEvents(eventList.map(event => ({
@@ -52,17 +75,19 @@ const EventList = () => {
       }
     };
 
-    loadEvents();
+    loadData();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [organizationCode]);
 
   const refetchEvents = async () => {
     try {
       setLoading(true);
-      const data = await eventService.getAllEvents();
+      const data = organizationCode
+        ? await eventService.getEventsByOrganization(organizationCode)
+        : await eventService.getAllEvents();
       const eventList = data.events || [];
       setEvents(eventList.map(event => ({
         ...event,
@@ -73,6 +98,19 @@ const EventList = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOrganizationFilter = (event) => {
+    const value = event.target.value;
+    if (value) {
+      setSearchParams({ group: value });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  const handleClearFilter = () => {
+    setSearchParams({});
   };
 
   const handleDelete = async (eventCode) => {
@@ -164,6 +202,37 @@ const EventList = () => {
       </Box>
 
       <Paper sx={{ mb: 3, p: 2 }}>
+        <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+          <FormControl sx={{ minWidth: 250 }}>
+            <InputLabel id="organization-filter-label">소모임 필터</InputLabel>
+            <Select
+              labelId="organization-filter-label"
+              id="organization-filter"
+              value={organizationCode || ''}
+              label="소모임 필터"
+              onChange={handleOrganizationFilter}
+            >
+              <MenuItem value="">
+                <em>전체 보기</em>
+              </MenuItem>
+              {organizations.map((org) => (
+                <MenuItem key={org.code} value={org.code}>
+                  {org.name} ({org.code})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {organizationCode && (
+            <Chip
+              label={`필터: ${organizationCode}`}
+              onDelete={handleClearFilter}
+              color="primary"
+              deleteIcon={<ClearIcon />}
+            />
+          )}
+        </Box>
+
         <TextField
           fullWidth
           variant="outlined"

@@ -177,6 +177,12 @@ const EventRegistrations = () => {
     { field: 'phone', headerName: '전화번호', width: 150 },
     { field: 'name', headerName: '이름', width: 200 },
     {
+      field: 'attendance_count',
+      headerName: '참석 횟수',
+      width: 120,
+      type: 'number'
+    },
+    {
       field: 'actions',
       headerName: '작업',
       width: 120,

@@ -153,7 +153,7 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             } />
-            
+
             <Route path="/events/new" element={
               <ProtectedRoute>
                 <Layout>
@@ -161,7 +161,7 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             } />
-            
+
             <Route path="/events/:eventCode" element={
               <ProtectedRoute>
                 <Layout>
@@ -201,7 +201,16 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             } />
-            
+
+            {/* 체크인 관련 라우트 */}
+            <Route path="/checkins/:eventCode" element={
+              <ProtectedRoute>
+                <Layout>
+                  <CheckinList />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
             {/* 글로벌 통계 라우트 임시 비활성화 */}
             {/* <Route path="/stats" element={
               <ProtectedRoute>

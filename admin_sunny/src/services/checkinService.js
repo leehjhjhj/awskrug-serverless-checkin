@@ -3,16 +3,35 @@ import config from '../config';
 import { mockCheckins, mockRegistrations } from './mockData';
 
 const checkinService = {
+  // Get all checkins for an event
+  getCheckins: async (eventCode) => {
+    console.log('Fetching all checkins for event:', eventCode);
+
+    try {
+      const response = await api.get(`/checkin/${eventCode}`);
+      console.log('Checkins API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Checkins API error:', error);
+      // Fallback to mock data if API fails
+      if (config.USE_MOCK_DATA) {
+        console.log('Falling back to mock checkins data');
+        return mockCheckins[eventCode] || [];
+      }
+      throw error;
+    }
+  },
+
   // Get checkin by phone and event code
   getCheckin: async (phone, eventCode) => {
     console.log('Fetching checkin for phone:', phone, 'event:', eventCode);
-    
+
     try {
-      const response = await api.get('/checkin', { 
-        params: { 
+      const response = await api.get('/checkin', {
+        params: {
           phone: phone,
-          event_code: eventCode 
-        } 
+          event_code: eventCode
+        }
       });
       console.log('Checkin API response:', response.data);
       return response.data;

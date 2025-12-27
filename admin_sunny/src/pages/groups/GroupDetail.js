@@ -19,6 +19,7 @@ import EventIcon from '@mui/icons-material/Event';
 import PeopleIcon from '@mui/icons-material/People';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import AddIcon from '@mui/icons-material/Add';
 import organizationService from '../../services/organizationService';
 
 // Mock data
@@ -197,14 +198,23 @@ const GroupDetail = () => {
               </ListItem>
             </List>
             
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
-              <Button 
-                variant="outlined" 
+            <Box sx={{ mt: 3, display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
                 startIcon={<EventIcon />}
                 component={Link}
                 to={`/events?group=${groupCode}`}
               >
                 이벤트 보기
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                component={Link}
+                to={`/events/new?org=${groupCode}`}
+              >
+                이벤트 생성
               </Button>
             </Box>
           </Paper>
