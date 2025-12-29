@@ -23,6 +23,8 @@ import EventCheckins from './pages/events/EventCheckins';
 import RegistrationList from './pages/registrations/RegistrationList';
 import CheckinList from './pages/checkins/CheckinList';
 import EventStats from './pages/stats/EventStats';
+import EventRetentionStats from './pages/stats/EventRetentionStats';
+import OrganizationStats from './pages/stats/OrganizationStats';
 
 // Group Pages - 소모임 관련 페이지
 import GroupList from './pages/groups/GroupList';
@@ -198,6 +200,23 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <EventStats />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
+            {/* 통계 관련 라우트 */}
+            <Route path="/statistics/event/:eventCode/retention" element={
+              <ProtectedRoute>
+                <Layout>
+                  <EventRetentionStats />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/statistics/organization/:organizationCode" element={
+              <ProtectedRoute>
+                <Layout>
+                  <OrganizationStats />
                 </Layout>
               </ProtectedRoute>
             } />

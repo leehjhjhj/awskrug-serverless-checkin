@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, Typography, Paper, Button, Box, 
-  Grid, Card, CardContent, CardActions, Chip
+import {
+  Container, Typography, Button, Box,
+  Grid, Card, CardContent, CardActions
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import AddIcon from '@mui/icons-material/Add';
-import GroupIcon from '@mui/icons-material/Group';
-import EventIcon from '@mui/icons-material/Event';
-import PeopleIcon from '@mui/icons-material/People';
 import organizationService from '../../services/organizationService';
 
 // Mock data for groups
@@ -115,25 +111,9 @@ const GroupList = () => {
                 <Typography variant="h5" component="div">
                   {group.group_name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary">
                   {group.description}
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-                  <Chip 
-                    icon={<EventIcon />} 
-                    label={`이벤트 ${group.event_count}개`} 
-                    size="small" 
-                    color="primary" 
-                    variant="outlined"
-                  />
-                  <Chip 
-                    icon={<PeopleIcon />} 
-                    label={`회원 ${group.member_count}명`} 
-                    size="small" 
-                    color="secondary" 
-                    variant="outlined"
-                  />
-                </Box>
               </CardContent>
               <CardActions>
                 <Button 
@@ -150,10 +130,10 @@ const GroupList = () => {
                 >
                   수정
                 </Button>
-                <Button 
-                  size="small" 
-                  component={Link} 
-                  to={`/groups/${group.group_code}/stats`}
+                <Button
+                  size="small"
+                  component={Link}
+                  to={`/statistics/organization/${group.group_code}`}
                 >
                   통계
                 </Button>

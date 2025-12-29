@@ -198,23 +198,37 @@ const GroupDetail = () => {
               </ListItem>
             </List>
             
-            <Box sx={{ mt: 3, display: 'flex', gap: 1 }}>
+            <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<EventIcon />}
+                  component={Link}
+                  to={`/events?group=${groupCode}`}
+                  fullWidth
+                >
+                  이벤트 보기
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<AddIcon />}
+                  component={Link}
+                  to={`/events/new?org=${groupCode}`}
+                  fullWidth
+                >
+                  이벤트 생성
+                </Button>
+              </Box>
               <Button
                 variant="outlined"
-                startIcon={<EventIcon />}
+                color="secondary"
+                startIcon={<BarChartIcon />}
                 component={Link}
-                to={`/events?group=${groupCode}`}
+                to={`/statistics/organization/${groupCode}`}
+                fullWidth
               >
-                이벤트 보기
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                component={Link}
-                to={`/events/new?org=${groupCode}`}
-              >
-                이벤트 생성
+                조직 통계 보기
               </Button>
             </Box>
           </Paper>
