@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   Container, Typography, Button, Box,
-  Grid, Card, CardContent, CardActions
+  Grid, Card, CardContent, CardActions, TextField, InputAdornment
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import { Link } from 'react-router-dom';
 import organizationService from '../../services/organizationService';
 
@@ -40,6 +41,7 @@ const mockGroups = [
 const GroupList = () => {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -88,6 +90,13 @@ const GroupList = () => {
     return <Box sx={{ p: 3 }}>로딩 중...</Box>;
   }
 
+  // Filter groups based on search query
+  const filteredGroups = groups.filter(group =>
+    group.group_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    group.group_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    group.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
@@ -96,18 +105,35 @@ const GroupList = () => {
         </Typography>
       </Box>
 
+      <Box sx={{ mb: 3 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="소모임 이름, 코드, 설명으로 검색..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
+
       <Grid container spacing={3}>
-        {groups.map((group) => (
+        {filteredGroups.map((group) => (
           <Grid item xs={12} md={4} key={group.group_code}>
-            <Card>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
-                <img 
-                  src={group.logo_url} 
-                  alt={group.group_name} 
+                <img
+                  src={group.logo_url}
+                  alt={group.group_name}
                   style={{ height: 100, objectFit: 'contain' }}
                 />
               </Box>
-              <CardContent>
+              <CardContent sx={{ flexGrow: 1 }}>
                 <Typography variant="h5" component="div">
                   {group.group_name}
                 </Typography>
@@ -116,16 +142,16 @@ const GroupList = () => {
                 </Typography>
               </CardContent>
               <CardActions>
-                <Button 
-                  size="small" 
-                  component={Link} 
+                <Button
+                  size="small"
+                  component={Link}
                   to={`/groups/${group.group_code}`}
                 >
                   상세 보기
                 </Button>
-                <Button 
-                  size="small" 
-                  component={Link} 
+                <Button
+                  size="small"
+                  component={Link}
                   to={`/groups/${group.group_code}/edit`}
                 >
                   수정

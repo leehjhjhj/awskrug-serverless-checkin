@@ -175,26 +175,10 @@ const GroupDetail = () => {
                 />
               </ListItem>
               <ListItem>
-                <ListItemText 
-                  primary="생성일" 
-                  secondary={new Date(group.created_at).toLocaleDateString()} 
+                <ListItemText
+                  primary="생성일"
+                  secondary={new Date(group.created_at).toLocaleDateString()}
                 />
-              </ListItem>
-              <ListItem>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Chip 
-                    icon={<EventIcon />} 
-                    label={`이벤트 ${group.event_count}개`} 
-                    color="primary" 
-                    variant="outlined"
-                  />
-                  <Chip 
-                    icon={<PeopleIcon />} 
-                    label={`회원 ${group.member_count}명`} 
-                    color="secondary" 
-                    variant="outlined"
-                  />
-                </Box>
               </ListItem>
             </List>
             
