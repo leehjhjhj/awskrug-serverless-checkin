@@ -21,7 +21,8 @@ def lambda_handler(event, context):
         
         file_content = response['Body'].read()
         excel_data = io.BytesIO(file_content)
-        df = pd.read_excel(excel_data)
+        # Read phone numbers as string to preserve leading zeros
+        df = pd.read_excel(excel_data, dtype={'visitor_mobile': str})
         
         event_code = key.split('_')[-1].split('.')[0]
 
