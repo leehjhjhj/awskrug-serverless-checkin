@@ -10,32 +10,36 @@ const authService = {
     try {
       if (config.USE_MOCK_DATA) {
         console.log('Using mock auth data');
-        
+
         // Simple mock authentication
-        if (username === 'admin' && password === 'password') {
+        if (username === 'admin' && password === 'admin123!') {
           const mockUser = {
+            access_token: 'mock-jwt-token',
+            token_type: 'bearer',
+            user_id: 'mock-user-id-1234',
             username: 'admin',
-            role: 'admin',
-            token: 'mock-jwt-token'
+            role: 'super_admin',
+            organizations: []
           };
-          
+
           // Store auth data in localStorage
-          localStorage.setItem(TOKEN_KEY, mockUser.token);
+          localStorage.setItem(TOKEN_KEY, mockUser.access_token);
           localStorage.setItem(USER_KEY, JSON.stringify(mockUser));
-          
+
           return mockUser;
         } else {
           throw new Error('Invalid credentials');
         }
       }
-      
+
       // Real API call
       const response = await api.post('/auth/login', { username, password });
       const userData = response.data;
-      
-      localStorage.setItem(TOKEN_KEY, userData.token);
+
+      // Store token and user data
+      localStorage.setItem(TOKEN_KEY, userData.access_token);
       localStorage.setItem(USER_KEY, JSON.stringify(userData));
-      
+
       return userData;
     } catch (error) {
       throw new Error('Authentication failed');
@@ -45,22 +49,11 @@ const authService = {
   // Logout user
   logout: async () => {
     try {
-      if (config.USE_MOCK_DATA) {
-        console.log('Using mock auth data');
-        
-        // Remove auth data from localStorage
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
-        
-        return true;
-      }
-      
-      // Real API call
-      await api.post('/auth/logout');
-      
+      // Simply remove auth data from localStorage
+      // No API call needed (stateless JWT)
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
-      
+
       return true;
     } catch (error) {
       throw new Error('Logout failed');
@@ -70,11 +63,29 @@ const authService = {
   // Get current user
   getCurrentUser: async () => {
     try {
+      const token = localStorage.getItem(TOKEN_KEY);
       const userStr = localStorage.getItem(USER_KEY);
-      if (!userStr) return null;
-      
-      return JSON.parse(userStr);
+
+      // No token or user data
+      if (!token || !userStr) {
+        return null;
+      }
+
+      const user = JSON.parse(userStr);
+
+      // Validate user data structure (must have access_token)
+      if (!user.access_token && !user.token) {
+        // Invalid user data - clear localStorage
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        return null;
+      }
+
+      return user;
     } catch (error) {
+      // Invalid data - clear localStorage
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
       return null;
     }
   },

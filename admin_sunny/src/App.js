@@ -12,7 +12,6 @@ import Footer from './components/common/Footer';
 
 // Pages
 import Login from './pages/login/Login';
-import Dashboard from './pages/dashboard/Dashboard';
 import GlobalStats from './pages/stats/GlobalStats';
 import ExcelUpload from './pages/upload/ExcelUpload';
 import EventList from './pages/events/EventList';
@@ -92,15 +91,7 @@ function App() {
             <Route path="/" element={
               <ProtectedRoute>
                 <Layout>
-                  <Navigate to="/dashboard" replace />
-                </Layout>
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Dashboard />
+                  <Navigate to="/groups" replace />
                 </Layout>
               </ProtectedRoute>
             } />
