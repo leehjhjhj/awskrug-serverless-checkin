@@ -40,7 +40,6 @@ const GroupForm = () => {
   const [formData, setFormData] = useState({
     organization_code: '',
     organization_name: '',
-    description: '',
     logo_url: '',
     event_version: []
   });
@@ -66,7 +65,6 @@ const GroupForm = () => {
             setFormData({
               organization_code: orgData.organization_code,
               organization_name: orgData.organization_name,
-              description: orgData.organization_name, // Use name as description
               logo_url: orgData.full_logo_url || 'https://via.placeholder.com/150', // Use full_logo_url or fallback to placeholder
               event_version: orgData.event_version || []
             });
@@ -79,7 +77,6 @@ const GroupForm = () => {
             setFormData({
               organization_code: mockGroup.group_code,
               organization_name: mockGroup.group_name,
-              description: mockGroup.description,
               logo_url: mockGroup.logo_url,
               event_version: ['1', '2'] // Default event versions
             });
@@ -217,20 +214,7 @@ const GroupForm = () => {
                 onChange={handleChange}
               />
             </Grid>
-            
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="설명"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                multiline
-                rows={3}
-              />
-            </Grid>
-            
-            
+
             <Grid item xs={12}>
               <Divider sx={{ my: 2 }} />
               <Typography variant="h6" gutterBottom>
