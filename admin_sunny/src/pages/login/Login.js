@@ -68,7 +68,7 @@ const Login = () => {
           }}
         >
           <Typography variant="h5" component="h1" gutterBottom>
-            AWSKRUG 서버리스 체크인
+            AWSKRUG 체크인
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
             관리자 로그인

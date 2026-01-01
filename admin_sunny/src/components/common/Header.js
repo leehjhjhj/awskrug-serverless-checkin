@@ -40,7 +40,7 @@ const Header = ({ handleDrawerToggle }) => {
         </IconButton>
 
         <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-          AWSKRUG 서버리스 체크인 관리자
+          AWSKRUG 체크인 관리자
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
