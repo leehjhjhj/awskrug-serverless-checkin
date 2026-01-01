@@ -54,7 +54,7 @@ const checkinService = {
   // Create a new checkin
   createCheckin: async (checkinData) => {
     console.log('Creating checkin:', checkinData);
-    
+
     try {
       const payload = {
         phone: checkinData.phone,
@@ -62,9 +62,10 @@ const checkinService = {
         email: checkinData.email,
         name: checkinData.name,
         checked_at: checkinData.checked_at || new Date().toISOString(),
-        event_version: checkinData.event_version
+        event_version: checkinData.event_version,
+        organization_code: checkinData.organization_code
       };
-      
+
       const response = await api.post('/checkin', payload);
       console.log('Create checkin API response:', response.data);
       return response.data;
@@ -126,7 +127,7 @@ const checkinService = {
   // Update a checkin
   updateCheckin: async (phone, eventCode, checkinData) => {
     console.log('Updating checkin for phone:', phone, 'event:', eventCode, checkinData);
-    
+
     try {
       const payload = {
         phone: phone,
@@ -134,9 +135,10 @@ const checkinService = {
         email: checkinData.email,
         name: checkinData.name,
         checked_at: checkinData.checked_at,
-        event_version: checkinData.event_version
+        event_version: checkinData.event_version,
+        organization_code: checkinData.organization_code
       };
-      
+
       const response = await api.put('/checkin', payload);
       console.log('Update checkin API response:', response.data);
       return response.data;
@@ -148,17 +150,17 @@ const checkinService = {
         if (!mockCheckins[eventCode]) {
           throw new Error('Event not found');
         }
-        
+
         const index = mockCheckins[eventCode].findIndex(c => c.phone === phone);
         if (index === -1) {
           throw new Error('Checkin not found');
         }
-        
+
         mockCheckins[eventCode][index] = {
           ...mockCheckins[eventCode][index],
           ...checkinData
         };
-        
+
         return mockCheckins[eventCode][index];
       }
       throw error;

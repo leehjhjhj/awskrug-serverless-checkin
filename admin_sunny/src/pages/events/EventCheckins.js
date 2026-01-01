@@ -27,6 +27,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
 import checkinService from '../../services/checkinService';
+import eventService from '../../services/eventService';
 
 const EventCheckins = () => {
   const { eventCode } = useParams();
@@ -35,6 +36,7 @@ const EventCheckins = () => {
   const [searchPhone, setSearchPhone] = useState('');
   const [checkin, setCheckin] = useState(null);
   const [checkins, setCheckins] = useState([]);
+  const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(false);
   const [listLoading, setListLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -43,7 +45,8 @@ const EventCheckins = () => {
     phone: '',
     name: '',
     checked_at: dayjs(),
-    event_version: '1'
+    event_version: '1',
+    organization_code: ''
   });
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -52,8 +55,23 @@ const EventCheckins = () => {
   });
 
   useEffect(() => {
+    fetchEventData();
     fetchCheckins();
   }, [eventCode]);
+
+  const fetchEventData = async () => {
+    try {
+      const eventData = await eventService.getEventByCode(eventCode);
+      setEvent(eventData);
+    } catch (error) {
+      console.error('Failed to fetch event data:', error);
+      setSnackbar({
+        open: true,
+        message: '이벤트 정보를 불러오는데 실패했습니다.',
+        severity: 'error'
+      });
+    }
+  };
 
   const fetchCheckins = async () => {
     try {
@@ -113,7 +131,8 @@ const EventCheckins = () => {
       phone: editData?.phone || '',
       name: editData?.name || '',
       checked_at: editData?.checked_at ? dayjs(editData.checked_at) : dayjs(),
-      event_version: editData?.event_version || '1'
+      event_version: editData?.event_version || event?.event_version || '1',
+      organization_code: editData?.organization_code || event?.organization_code || ''
     });
     setOpenDialog(true);
   };
@@ -125,7 +144,8 @@ const EventCheckins = () => {
       phone: '',
       name: '',
       checked_at: dayjs(),
-      event_version: '1'
+      event_version: '1',
+      organization_code: ''
     });
   };
 
@@ -136,7 +156,8 @@ const EventCheckins = () => {
         event_code: eventCode,
         name: formData.name,
         checked_at: formData.checked_at.toISOString(),
-        event_version: formData.event_version
+        event_version: formData.event_version,
+        organization_code: formData.organization_code
       };
 
       if (isEditing) {
@@ -347,12 +368,6 @@ const EventCheckins = () => {
               field: 'event_version',
               headerName: '이벤트 버전',
               width: 120
-            },
-            {
-              field: 'attendance_count',
-              headerName: '참석 횟수',
-              width: 120,
-              type: 'number'
             },
             {
               field: 'actions',

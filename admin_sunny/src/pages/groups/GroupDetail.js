@@ -80,6 +80,7 @@ const GroupDetail = () => {
           const transformedGroup = {
             group_code: orgData.organization_code,
             group_name: orgData.organization_name,
+            slug: orgData.slug || '',
             description: orgData.organization_name, // Use name as description
             created_at: new Date().toISOString(), // Default created date
             logo_url: orgData.full_logo_url || 'https://via.placeholder.com/150', // Use full_logo_url or fallback to placeholder
@@ -169,11 +170,19 @@ const GroupDetail = () => {
             
             <List dense>
               <ListItem>
-                <ListItemText 
-                  primary="소모임 코드" 
-                  secondary={group.group_code} 
+                <ListItemText
+                  primary="소모임 코드"
+                  secondary={group.group_code}
                 />
               </ListItem>
+              {group.slug && (
+                <ListItem>
+                  <ListItemText
+                    primary="슬러그 (Slug)"
+                    secondary={group.slug}
+                  />
+                </ListItem>
+              )}
               <ListItem>
                 <ListItemText
                   primary="생성일"
