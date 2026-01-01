@@ -9,7 +9,7 @@ class LambdaResponse:
     body: Optional[str] = None
     headers: Dict[str, str] = field(default_factory=lambda: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "https://awskrug-sls.com",
+        "Access-Control-Allow-Origin": "https://checkin.awskr.org",
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Methods": "POST,OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Accept",
