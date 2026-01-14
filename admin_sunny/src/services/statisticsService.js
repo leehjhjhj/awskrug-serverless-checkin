@@ -22,7 +22,19 @@ export const getOrganizationStats = async (organizationCode) => {
   }
 };
 
+// 이벤트 버전별 통계 조회
+export const getEventVersionStats = async (eventVersion) => {
+  try {
+    const response = await api.get(`/statistics/event-version/${eventVersion}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching stats for event version ${eventVersion}:`, error);
+    throw error;
+  }
+};
+
 export default {
   getEventRetention,
-  getOrganizationStats
+  getOrganizationStats,
+  getEventVersionStats
 };

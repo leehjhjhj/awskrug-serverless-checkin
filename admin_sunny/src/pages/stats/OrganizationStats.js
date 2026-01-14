@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, Paper, Grid, CircularProgress, Button, Divider
+  Box, Typography, Paper, Grid, CircularProgress, Button, Divider, Tabs, Tab
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EventIcon from '@mui/icons-material/Event';
@@ -19,7 +19,9 @@ import {
   Legend
 } from 'chart.js';
 import statisticsService from '../../services/statisticsService';
+import organizationService from '../../services/organizationService';
 import AlertMessage from '../../components/common/AlertMessage';
+import VersionStatsTabContent from '../../components/stats/VersionStatsTabContent';
 
 ChartJS.register(
   CategoryScale,
@@ -36,6 +38,10 @@ const OrganizationStats = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
+  const [tabValue, setTabValue] = useState(0);
+  const [eventVersions, setEventVersions] = useState([]);
+  const [versionStats, setVersionStats] = useState({});
+  const [versionStatsLoading, setVersionStatsLoading] = useState({});
 
   useEffect(() => {
     let cancelled = false;
@@ -49,6 +55,20 @@ const OrganizationStats = () => {
 
         if (!cancelled) {
           setStats(data);
+        }
+
+        // Fetch organization details to get event_version array
+        try {
+          const orgData = await organizationService.getOrganization(organizationCode);
+          if (!cancelled && orgData.event_version && Array.isArray(orgData.event_version)) {
+            setEventVersions(orgData.event_version);
+          }
+        } catch (orgError) {
+          console.error('Failed to fetch organization details:', orgError);
+          // Continue with empty event_versions if this fails
+          if (!cancelled) {
+            setEventVersions([]);
+          }
         }
       } catch (error) {
         if (!cancelled) {
@@ -72,6 +92,31 @@ const OrganizationStats = () => {
       cancelled = true;
     };
   }, [organizationCode]);
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
+  const fetchVersionStats = async (eventVersion) => {
+    if (versionStatsLoading[eventVersion] || versionStats[eventVersion]) {
+      return; // 이미 로딩 중이거나 캐시됨
+    }
+
+    try {
+      setVersionStatsLoading(prev => ({ ...prev, [eventVersion]: true }));
+      const data = await statisticsService.getEventVersionStats(eventVersion);
+      setVersionStats(prev => ({ ...prev, [eventVersion]: data }));
+    } catch (error) {
+      console.error(`Failed to fetch stats for version ${eventVersion}:`, error);
+      setAlert({
+        open: true,
+        message: `버전 ${eventVersion} 통계를 불러오는데 실패했습니다.`,
+        severity: 'error'
+      });
+    } finally {
+      setVersionStatsLoading(prev => ({ ...prev, [eventVersion]: false }));
+    }
+  };
 
   if (loading) {
     return (
@@ -140,7 +185,16 @@ const OrganizationStats = () => {
         </Box>
       </Box>
 
-      {/* 주요 통계 카드 */}
+      <Paper sx={{ mb: 3 }}>
+        <Tabs value={tabValue} onChange={handleTabChange} variant="fullWidth">
+          <Tab label="전체 통계" />
+          <Tab label="버전별 통계" />
+        </Tabs>
+      </Paper>
+
+      {tabValue === 0 && (
+        <Box>
+          {/* 주요 통계 카드 */}
       <Grid container spacing={3} mb={3}>
         <Grid item xs={12} sm={6} md={3}>
           <Paper sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -330,6 +384,17 @@ const OrganizationStats = () => {
           </Box>
         )}
       </Paper>
+        </Box>
+      )}
+
+      {tabValue === 1 && (
+        <VersionStatsTabContent
+          eventVersions={eventVersions}
+          versionStats={versionStats}
+          versionStatsLoading={versionStatsLoading}
+          onFetchVersionStats={fetchVersionStats}
+        />
+      )}
 
       <AlertMessage
         open={alert.open}

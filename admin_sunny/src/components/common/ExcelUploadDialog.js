@@ -160,6 +160,9 @@ const ExcelUploadDialog = ({ open, onClose, eventCode, onUploadSuccess }) => {
               >
                 템플릿 다운로드
               </Button>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                (센터필드 입장 양식과 동일, xlsx만 가능)
+              </Typography>
             </Grid>
           </Grid>
         </Box>
