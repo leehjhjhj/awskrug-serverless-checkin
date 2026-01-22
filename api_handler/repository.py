@@ -29,8 +29,9 @@ class ApiRepository:
             event_code=event_code
         ).first()
 
-    def get_all_event_checkin(self, phone: str, event_version: str) -> list[EventCheckIn]:
+    def get_all_event_checkin(self, phone: str, organization_code: str, event_version: str) -> list[EventCheckIn]:
         return self._db.query(EventCheckIn).filter_by(
             phone=phone,
+            organization_code=organization_code,
             event_version=event_version
         ).all()
