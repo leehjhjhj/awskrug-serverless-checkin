@@ -5,6 +5,7 @@ from typing import Optional, Union
 
 import pandas as pd
 from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert
 
 def get_email_from_parts(parts: Union[list, pd.Series, str]) -> Optional[str]:
     if isinstance(parts, list) and len(parts) >= 2:
@@ -32,12 +33,16 @@ def process_csv_data(df: pd.DataFrame) -> pd.DataFrame:
     return result_df
 
 def insert_data_to_db(df: pd.DataFrame, event_code: str, session: Session) -> None:
-    insert_list: list[EventRegistration] = []
-    for info in df.to_dict(orient='records'):
-        event_registration = EventRegistration(
-            event_code=event_code,
-            phone=info['phone_number'],
-            name=info['Name']
-        )
-        insert_list.append(event_registration)
-    session.bulk_save_objects(insert_list)
+    records = [
+        {
+            'event_code': event_code,
+            'phone': info['phone_number'],
+            'name': info['Name']
+        }
+        for info in df.to_dict(orient='records')
+    ]
+
+    if records:
+        stmt = insert(EventRegistration).values(records)
+        stmt = stmt.on_conflict_do_nothing(index_elements=['event_code', 'phone'])
+        session.execute(stmt)
