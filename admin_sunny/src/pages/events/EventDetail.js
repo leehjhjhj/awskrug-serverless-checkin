@@ -3,9 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Paper, Grid, Button, Tabs, Tab, Divider
 } from '@mui/material';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import eventService from '../../services/eventService';
 import AlertMessage from '../../components/common/AlertMessage';
 import LoadingBackdrop from '../../components/common/LoadingBackdrop';
+import ExcelUploadDialog from '../../components/common/ExcelUploadDialog';
 
 const EventDetail = () => {
   const { eventCode } = useParams();
@@ -14,6 +16,7 @@ const EventDetail = () => {
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchEvent();
@@ -37,7 +40,7 @@ const EventDetail = () => {
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
-    
+
     // Navigate to appropriate tab
     switch(newValue) {
       case 0: // Details
@@ -57,6 +60,14 @@ const EventDetail = () => {
     }
   };
 
+  const handleUploadSuccess = () => {
+    setAlert({
+      open: true,
+      message: '등록자 파일이 성공적으로 업로드되었습니다.',
+      severity: 'success'
+    });
+  };
+
   if (loading) {
     return <LoadingBackdrop open={loading} />;
   }
@@ -67,13 +78,23 @@ const EventDetail = () => {
         <Typography variant="h5" component="h1">
           이벤트 상세 정보
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate(`/events/${eventCode}/edit`)}
-        >
-          이벤트 수정
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<CloudUploadIcon />}
+            onClick={() => setUploadDialogOpen(true)}
+          >
+            Excel 업로드
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate(`/events/${eventCode}/edit`)}
+          >
+            이벤트 수정
+          </Button>
+        </Box>
       </Box>
 
       <Paper sx={{ mb: 3 }}>
@@ -149,6 +170,13 @@ const EventDetail = () => {
         onClose={() => setAlert({ ...alert, open: false })}
         severity={alert.severity}
         message={alert.message}
+      />
+
+      <ExcelUploadDialog
+        open={uploadDialogOpen}
+        onClose={() => setUploadDialogOpen(false)}
+        eventCode={eventCode}
+        onUploadSuccess={handleUploadSuccess}
       />
     </Box>
   );

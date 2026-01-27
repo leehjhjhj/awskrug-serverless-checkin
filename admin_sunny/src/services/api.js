@@ -33,9 +33,15 @@ api.interceptors.response.use(
   (error) => {
     // Handle 401 Unauthorized errors
     if (error.response && error.response.status === 401) {
-      // Redirect to login or refresh token
-      localStorage.removeItem('authToken');
-      window.location.href = '/login';
+      // Don't redirect if it's a login request
+      const isLoginRequest = error.config?.url?.includes('/auth/login');
+
+      if (!isLoginRequest) {
+        // Token expired or invalid - redirect to login
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('currentUser');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

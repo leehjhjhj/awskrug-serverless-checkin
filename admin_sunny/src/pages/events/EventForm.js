@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Container,
   Typography,
@@ -48,17 +48,20 @@ const mockEvent = {
 const EventForm = () => {
   const { eventCode } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preselectedOrgCode = searchParams.get('org');
   const isEditMode = !!eventCode;
-  
+
   const [formData, setFormData] = useState({
     event_name: '',
-    organization_code: '',
+    organization_code: preselectedOrgCode || '',
     event_date_time: dayjs(),
     code_expired_at: dayjs().add(3, 'hour'),
     description: '',
-    event_version: '1'
+    event_version: '1',
+    qr_url: null
   });
-  
+
   const [organizations, setOrganizations] = useState([]);
   const [selectedOrganization, setSelectedOrganization] = useState(null);
   const [organizationDetail, setOrganizationDetail] = useState(null);
@@ -71,67 +74,97 @@ const EventForm = () => {
 
   useEffect(() => {
     let cancelled = false;
-    
-    // Fetch organizations
-    const fetchOrganizations = async () => {
+
+    // Fetch organizations and event data
+    const fetchData = async () => {
       if (cancelled) return;
-      
+
       try {
+        // First, fetch organizations
         const organizationsData = await organizationService.getAllOrganizations();
-        
-        if (!cancelled) {
-          // Transform API response to match our component structure
-          const transformedOrgs = organizationsData.map(org => ({
-            code: org.organization_code,
-            name: org.organization_name,
-            description: org.organization_name // Use name as description for now
-          }));
-          setOrganizations(transformedOrgs);
+
+        if (cancelled) return;
+
+        // Transform API response to match our component structure
+        const transformedOrgs = organizationsData.map(org => ({
+          code: org.organization_code,
+          name: org.organization_name,
+          description: org.organization_name // Use name as description for now
+        }));
+        setOrganizations(transformedOrgs);
+
+        // If there's a preselected org code, set it
+        if (preselectedOrgCode && !isEditMode) {
+          const preselectedOrg = transformedOrgs.find(org => org.code === preselectedOrgCode);
+          if (preselectedOrg) {
+            setSelectedOrganization(preselectedOrg);
+            // Fetch organization details
+            try {
+              const orgDetail = await organizationService.getOrganization(preselectedOrg.code);
+              setOrganizationDetail(orgDetail);
+              setAvailableEventVersions(orgDetail.event_version || []);
+
+              // Set the first available event version as default
+              if (orgDetail.event_version && orgDetail.event_version.length > 0) {
+                setFormData(prev => ({
+                  ...prev,
+                  event_version: orgDetail.event_version[0]
+                }));
+              }
+            } catch (error) {
+              console.error('Error fetching organization detail:', error);
+            }
+          }
+        }
+
+        // If in edit mode, fetch event data after organizations are loaded
+        if (isEditMode) {
+          const eventData = await eventService.getEventByCode(eventCode);
+
+          if (cancelled) return;
+
+          // Find organization from the loaded organizations
+          const orgData = transformedOrgs.find(org => org.code === eventData.organization_code);
+          setSelectedOrganization(orgData);
+
+          // Fetch organization details to get available event versions
+          if (orgData) {
+            try {
+              const orgDetail = await organizationService.getOrganization(orgData.code);
+              setOrganizationDetail(orgDetail);
+              setAvailableEventVersions(orgDetail.event_version || []);
+            } catch (error) {
+              console.error('Error fetching organization detail:', error);
+            }
+          }
+
+          setFormData({
+            event_name: eventData.event_name,
+            organization_code: eventData.organization_code,
+            event_date_time: dayjs(eventData.event_date_time),
+            code_expired_at: dayjs(eventData.code_expired_at),
+            description: eventData.description,
+            event_version: eventData.event_version,
+            qr_url: eventData.qr_url
+          });
+          setLoading(false);
         }
       } catch (error) {
         if (!cancelled) {
-          console.error('Error fetching organizations:', error);
-          // Fallback to mock data
-          setOrganizations(mockOrganizations);
+          console.error('Error fetching data:', error);
+          if (isEditMode) {
+            setError('이벤트 정보를 불러오는데 실패했습니다.');
+          } else {
+            // Fallback to mock data for organizations
+            setOrganizations(mockOrganizations);
+          }
+          setLoading(false);
         }
       }
     };
 
-    fetchOrganizations();
+    fetchData();
 
-    // If in edit mode, fetch event data
-    if (isEditMode) {
-      const fetchEvent = async () => {
-        if (cancelled) return;
-        
-        try {
-          const eventData = await eventService.getEventByCode(eventCode);
-          
-          if (!cancelled) {
-            const orgData = mockOrganizations.find(org => org.code === eventData.organization_code);
-            setSelectedOrganization(orgData);
-            setFormData({
-              event_name: eventData.event_name,
-              organization_code: eventData.organization_code,
-              event_date_time: dayjs(eventData.event_date_time),
-              code_expired_at: dayjs(eventData.code_expired_at),
-              description: eventData.description,
-              event_version: eventData.event_version
-            });
-            setLoading(false);
-          }
-        } catch (error) {
-          if (!cancelled) {
-            console.error('Error fetching event:', error);
-            setError('이벤트 정보를 불러오는데 실패했습니다.');
-            setLoading(false);
-          }
-        }
-      };
-
-      fetchEvent();
-    }
-    
     return () => {
       cancelled = true;
     };
@@ -215,15 +248,21 @@ const EventForm = () => {
     
     try {
       // Prepare payload according to API spec
+      // Use format() to keep local time instead of converting to UTC
       const payload = {
-        event_date_time: formData.event_date_time.toISOString(),
-        code_expired_at: formData.code_expired_at.toISOString(),
+        event_date_time: formData.event_date_time.format('YYYY-MM-DDTHH:mm:ss.SSS') + 'Z',
+        code_expired_at: formData.code_expired_at.format('YYYY-MM-DDTHH:mm:ss.SSS') + 'Z',
         description: formData.description,
         event_name: formData.event_name,
         event_version: formData.event_version,
         organization_code: formData.organization_code
       };
-      
+
+      // Include qr_url if it exists (for edit mode)
+      if (formData.qr_url !== null) {
+        payload.qr_url = formData.qr_url;
+      }
+
       let result;
       if (isEditMode) {
         // For update, we need to include event_code in the payload
@@ -238,10 +277,15 @@ const EventForm = () => {
       
       console.log('Event saved successfully:', result);
       setSuccess(true);
-      
+
       // Redirect after successful submission
       setTimeout(() => {
-        navigate('/events');
+        // If we have an organization code, navigate to filtered list
+        if (formData.organization_code) {
+          navigate(`/events?group=${formData.organization_code}`);
+        } else {
+          navigate('/events');
+        }
       }, 1500);
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -264,7 +308,14 @@ const EventForm = () => {
           </Typography>
           <Button
             startIcon={<ArrowBackIcon />}
-            onClick={() => navigate('/events')}
+            onClick={() => {
+              // Navigate back with filter if organization is selected
+              if (formData.organization_code) {
+                navigate(`/events?group=${formData.organization_code}`);
+              } else {
+                navigate('/events');
+              }
+            }}
           >
             목록으로
           </Button>

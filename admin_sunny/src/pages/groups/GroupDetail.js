@@ -19,6 +19,7 @@ import EventIcon from '@mui/icons-material/Event';
 import PeopleIcon from '@mui/icons-material/People';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import AddIcon from '@mui/icons-material/Add';
 import organizationService from '../../services/organizationService';
 
 // Mock data
@@ -79,6 +80,7 @@ const GroupDetail = () => {
           const transformedGroup = {
             group_code: orgData.organization_code,
             group_name: orgData.organization_name,
+            slug: orgData.slug || '',
             description: orgData.organization_name, // Use name as description
             created_at: new Date().toISOString(), // Default created date
             logo_url: orgData.full_logo_url || 'https://via.placeholder.com/150', // Use full_logo_url or fallback to placeholder
@@ -168,43 +170,58 @@ const GroupDetail = () => {
             
             <List dense>
               <ListItem>
-                <ListItemText 
-                  primary="소모임 코드" 
-                  secondary={group.group_code} 
+                <ListItemText
+                  primary="소모임 코드"
+                  secondary={group.group_code}
                 />
               </ListItem>
+              {group.slug && (
+                <ListItem>
+                  <ListItemText
+                    primary="슬러그 (Slug)"
+                    secondary={group.slug}
+                  />
+                </ListItem>
+              )}
               <ListItem>
-                <ListItemText 
-                  primary="생성일" 
-                  secondary={new Date(group.created_at).toLocaleDateString()} 
+                <ListItemText
+                  primary="생성일"
+                  secondary={new Date(group.created_at).toLocaleDateString()}
                 />
-              </ListItem>
-              <ListItem>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Chip 
-                    icon={<EventIcon />} 
-                    label={`이벤트 ${group.event_count}개`} 
-                    color="primary" 
-                    variant="outlined"
-                  />
-                  <Chip 
-                    icon={<PeopleIcon />} 
-                    label={`회원 ${group.member_count}명`} 
-                    color="secondary" 
-                    variant="outlined"
-                  />
-                </Box>
               </ListItem>
             </List>
             
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
-              <Button 
-                variant="outlined" 
-                startIcon={<EventIcon />}
+            <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<EventIcon />}
+                  component={Link}
+                  to={`/events?group=${groupCode}`}
+                  fullWidth
+                >
+                  이벤트 보기
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<AddIcon />}
+                  component={Link}
+                  to={`/events/new?org=${groupCode}`}
+                  fullWidth
+                >
+                  이벤트 생성
+                </Button>
+              </Box>
+              <Button
+                variant="outlined"
+                color="secondary"
+                startIcon={<BarChartIcon />}
                 component={Link}
-                to={`/events?group=${groupCode}`}
+                to={`/statistics/organization/${groupCode}`}
+                fullWidth
               >
-                이벤트 보기
+                조직 통계 보기
               </Button>
             </Box>
           </Paper>

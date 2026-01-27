@@ -1,11 +1,13 @@
-from pydantic import BaseModel
+from dataclasses import dataclass
 
 
-class CheckInRequest(BaseModel):
+@dataclass
+class CheckInRequest:
     event_code: str
     phone: str
 
 
-class CheckinResponse(BaseModel):
+@dataclass
+class CheckinResponse:
     name: str
     count: int

@@ -244,3 +244,14 @@ $RECYCLE.BIN/
 # End of https://www.gitignore.io/api/osx,linux,python,windows,pycharm,visualstudiocode
 
 web/config.js
+
+# Symlinks for local development (common_layer modules)
+/model.py
+/settings.py
+/db_connection.py
+/hash_tool.py
+/common_schema.py
+/dynamodb_model.py
+/transaction_manager.py
+/parameter_store.py
+/exceptions

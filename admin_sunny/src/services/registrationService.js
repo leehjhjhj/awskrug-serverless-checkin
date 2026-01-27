@@ -30,8 +30,8 @@ const registrationService = {
     
     try {
       const payload = {
-        partition_key: eventCode,
-        sort_key: registrationData.phone,
+        event_code: eventCode,
+        phone: registrationData.phone,
         name: registrationData.name,
         email: registrationData.email
       };
@@ -137,9 +137,8 @@ const registrationService = {
 
   // Download registration template
   downloadTemplate: () => {
-    // This would typically be a static file or generated on the server
-    // For now, we'll just return a URL to a template file
-    return `${api.defaults.baseURL}/registration/template`;
+    // Return the path to the template file in the public folder
+    return '/example.xlsx';
   },
 
   // Update a registration
@@ -148,8 +147,8 @@ const registrationService = {
     
     try {
       const payload = {
-        partition_key: eventCode,
-        sort_key: phone,
+        event_code: eventCode,
+        phone: phone,
         name: registrationData.name,
         email: registrationData.email
       };

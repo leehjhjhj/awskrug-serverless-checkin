@@ -51,6 +51,17 @@ export const getAllEvents = async (groupCode = null) => {
   }
 };
 
+// organization_code별 이벤트 목록 조회
+export const getEventsByOrganization = async (organizationCode) => {
+  try {
+    const response = await api.get(`/event/organization/${organizationCode}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching events for organization ${organizationCode}:`, error);
+    throw error;
+  }
+};
+
 // 특정 이벤트 상세 정보 조회
 export const getEventByCode = async (eventCode) => {
   try {
@@ -164,6 +175,7 @@ export const getEventStats = async (eventCode) => {
 
 export default {
   getAllEvents,
+  getEventsByOrganization,
   getEventByCode,
   createEvent,
   updateEvent,

@@ -12,7 +12,6 @@ import {
   Divider,
   Typography
 } from '@mui/material';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 import EventIcon from '@mui/icons-material/Event';
 import PeopleIcon from '@mui/icons-material/People';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -25,7 +24,6 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   const location = useLocation();
 
   const menuItems = [
-    { text: '대시보드', icon: <DashboardIcon />, path: '/dashboard' },
     { text: '소모임 관리', icon: <GroupsIcon />, path: '/groups' },
     { text: '이벤트 관리', icon: <EventIcon />, path: '/events' },
     // { text: '통계', icon: <BarChartIcon />, path: '/stats' }, // 통계 메뉴 임시 비활성화

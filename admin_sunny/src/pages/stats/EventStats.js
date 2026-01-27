@@ -16,6 +16,7 @@ import {
   Legend
 } from 'chart.js';
 import eventService from '../../services/eventService';
+import statisticsService from '../../services/statisticsService';
 import AlertMessage from '../../components/common/AlertMessage';
 
 // Register ChartJS components
@@ -32,26 +33,72 @@ ChartJS.register(
 const EventStats = () => {
   const { eventCode } = useParams();
   const [stats, setStats] = useState(null);
+  const [retentionStats, setRetentionStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exportLoading, setExportLoading] = useState(false);
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
 
   useEffect(() => {
     let cancelled = false;
-    
+
     const fetchStats = async () => {
       if (!eventCode || cancelled) return;
-      
+
       try {
         setLoading(true);
-        const data = await eventService.getEventStats(eventCode);
-        
+
+        // 두 API를 독립적으로 호출 (하나가 실패해도 다른 것은 성공할 수 있도록)
+        const [statsResult, retentionResult] = await Promise.allSettled([
+          eventService.getEventStats(eventCode),
+          statisticsService.getEventRetention(eventCode)
+        ]);
+
         if (!cancelled) {
-          setStats(data);
+          // Retention API 결과 처리
+          if (retentionResult.status === 'fulfilled') {
+            setRetentionStats(retentionResult.value);
+
+            // Stats API가 실패했지만 retention 데이터가 있으면 retention 데이터로 기본 stats 구성
+            if (statsResult.status === 'rejected') {
+              const retData = retentionResult.value;
+              setStats({
+                event_name: retData.event_code,
+                event_date_time: new Date().toISOString(),
+                total_registrations: retData.registration_count,
+                total_checkins: retData.unique_checkin_count,
+                attendance_rate: Math.round(retData.retention_rate * 100)
+              });
+              console.log('Using retention data for basic stats');
+            }
+          } else {
+            console.error('Failed to fetch retention stats:', retentionResult.reason);
+          }
+
+          // Stats API 결과 처리 (성공한 경우에만)
+          if (statsResult.status === 'fulfilled') {
+            setStats(statsResult.value);
+          } else {
+            console.error('Failed to fetch event stats:', statsResult.reason);
+          }
+
+          // 둘 다 실패한 경우에만 에러 메시지 표시
+          if (statsResult.status === 'rejected' && retentionResult.status === 'rejected') {
+            setAlert({
+              open: true,
+              message: '통계 정보를 불러오는데 실패했습니다.',
+              severity: 'error'
+            });
+          } else if (retentionResult.status === 'rejected') {
+            setAlert({
+              open: true,
+              message: 'Retention 통계를 불러오는데 실패했습니다. 기본 통계만 표시됩니다.',
+              severity: 'warning'
+            });
+          }
         }
       } catch (error) {
         if (!cancelled) {
-          console.error('Failed to fetch event stats:', error);
+          console.error('Unexpected error:', error);
           setAlert({
             open: true,
             message: '통계 정보를 불러오는데 실패했습니다.',
@@ -66,7 +113,7 @@ const EventStats = () => {
     };
 
     fetchStats();
-    
+
     return () => {
       cancelled = true;
     };
@@ -201,7 +248,7 @@ const EventStats = () => {
               </Grid>
             </Paper>
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
             <Paper sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
               <Typography variant="h6" gutterBottom>
@@ -209,8 +256,8 @@ const EventStats = () => {
               </Typography>
               <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <Box sx={{ width: '70%', maxWidth: 300 }}>
-                  <Doughnut 
-                    data={attendanceData} 
+                  <Doughnut
+                    data={attendanceData}
                     options={{
                       responsive: true,
                       maintainAspectRatio: true,
@@ -226,6 +273,111 @@ const EventStats = () => {
             </Paper>
           </Grid>
         </Grid>
+      )}
+
+      {/* Retention Rate 섹션 */}
+      {retentionStats && (
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h5" component="h2" gutterBottom>
+            Retention Rate 분석
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Paper sx={{ p: 3, height: '100%' }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  전체 등록자 수
+                </Typography>
+                <Typography variant="h4" color="primary">
+                  {retentionStats.registration_count}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  이벤트에 등록한 총 인원
+                </Typography>
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Paper sx={{ p: 3, height: '100%' }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  전체 체크인 수
+                </Typography>
+                <Typography variant="h4" color="warning.main">
+                  {retentionStats.checkin_count}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  중복 포함 전체 체크인 횟수
+                </Typography>
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Paper sx={{ p: 3, height: '100%' }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  실제 참석자 수
+                </Typography>
+                <Typography variant="h4" color="success.main">
+                  {retentionStats.unique_checkin_count}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  중복 제거된 실제 참석 인원
+                </Typography>
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Paper sx={{ p: 3, height: '100%', bgcolor: 'primary.main', color: 'white' }}>
+                <Typography variant="body2" gutterBottom sx={{ opacity: 0.9 }}>
+                  Retention Rate
+                </Typography>
+                <Typography variant="h3" fontWeight="bold">
+                  {Math.round(retentionStats.retention_rate * 100)}%
+                </Typography>
+                <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                  등록 대비 참석률
+                </Typography>
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Paper sx={{ p: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Retention Rate 설명
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="subtitle2" color="primary" gutterBottom>
+                      등록자 수 (Registration Count)
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      이벤트에 사전 등록한 총 인원입니다. ({retentionStats.registration_count}명)
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="subtitle2" color="warning.main" gutterBottom>
+                      전체 체크인 수 (Checkin Count)
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      중복을 포함한 전체 체크인 횟수입니다. ({retentionStats.checkin_count}회)
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="subtitle2" color="success.main" gutterBottom>
+                      실제 참석자 수 (Unique Checkin Count)
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      중복을 제거한 실제 참석 인원입니다. ({retentionStats.unique_checkin_count}명)
+                    </Typography>
+                  </Grid>
+                </Grid>
+                <Box sx={{ mt: 2, p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
+                  <Typography variant="body2" color="info.contrastText">
+                    <strong>Retention Rate 계산식:</strong> 실제 참석자 수 ÷ 등록자 수 = {retentionStats.unique_checkin_count} ÷ {retentionStats.registration_count} = {(retentionStats.retention_rate * 100).toFixed(2)}%
+                  </Typography>
+                </Box>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Box>
       )}
 
       <AlertMessage
