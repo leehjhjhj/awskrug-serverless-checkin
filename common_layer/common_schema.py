@@ -11,7 +11,7 @@ class LambdaResponse:
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "https://checkin.awskr.org",
         "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "POST,OPTIONS",
+        "Access-Control-Allow-Methods": "POST,GET,PUT,DELETE,OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Accept",
         "Access-Control-Expose-Headers": "x-amzn-RequestId,x-amzn-ErrorType"
     })

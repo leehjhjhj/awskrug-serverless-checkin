@@ -27,6 +27,7 @@ class EventOrganization(Base):
 
     organization_code = Column(String(100), primary_key=True)
     organization_name = Column(String(255), nullable=False)
+    slug = Column(String(100), nullable=False, unique=True)
     logo_url = Column(Text, nullable=False)
     event_version = Column(Text, nullable=False)  # Comma-separated list (e.g., "v1,v2,v3")
     created_at = Column(DateTime, server_default=func.current_timestamp())

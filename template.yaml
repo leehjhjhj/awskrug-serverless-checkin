@@ -104,7 +104,7 @@ Resources:
     Properties:
       StageName: !Ref NowEnvironment
       Cors:
-        AllowMethods: "'POST,OPTIONS'"
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'https://checkin.awskr.org'"
 
@@ -206,9 +206,15 @@ Resources:
             Path: /check
             Method: POST
             RestApiId: !Ref ApiGateway
+        CheckinInfoEvent:
+          Type: Api
+          Properties:
+            Path: /checkin/info
+            Method: GET
+            RestApiId: !Ref ApiGateway
       Layers:
         - !Ref CommonLayer
-  
+
   EmailFunction:
     Type: AWS::Serverless::Function
     Properties:
