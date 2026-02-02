@@ -33,8 +33,22 @@ export const getEventVersionStats = async (eventVersion) => {
   }
 };
 
+// 이벤트 통계 엑셀 다운로드
+export const downloadEventStatistics = async (eventCode) => {
+  try {
+    const response = await api.get(`/statistics/event/${eventCode}/download`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error downloading statistics for event ${eventCode}:`, error);
+    throw error;
+  }
+};
+
 export default {
   getEventRetention,
   getOrganizationStats,
-  getEventVersionStats
+  getEventVersionStats,
+  downloadEventStatistics
 };

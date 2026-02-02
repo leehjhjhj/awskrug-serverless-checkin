@@ -119,30 +119,30 @@ const EventStats = () => {
     };
   }, [eventCode]);
 
-  const handleExport = async (format) => {
+  const handleExcelDownload = async () => {
     try {
       setExportLoading(true);
-      const blob = await eventService.exportEventData(eventCode, format);
-      
+      const blob = await statisticsService.downloadEventStatistics(eventCode);
+
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = `event-${eventCode}-export.${format}`;
+      a.download = `event_statistics_${eventCode}.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
-      
+
       setAlert({
         open: true,
-        message: '데이터가 성공적으로 내보내졌습니다.',
+        message: '통계 엑셀 파일이 다운로드되었습니다.',
         severity: 'success'
       });
     } catch (error) {
       setAlert({
         open: true,
-        message: '데이터 내보내기에 실패했습니다.',
+        message: '엑셀 다운로드에 실패했습니다.',
         severity: 'error'
       });
     } finally {
@@ -176,25 +176,14 @@ const EventStats = () => {
         <Typography variant="h5" component="h1">
           이벤트 통계 - {eventCode}
         </Typography>
-        <Box>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            onClick={() => handleExport('csv')}
-            disabled={exportLoading}
-            sx={{ mr: 1 }}
-          >
-            CSV 내보내기
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            onClick={() => handleExport('excel')}
-            disabled={exportLoading}
-          >
-            Excel 내보내기
-          </Button>
-        </Box>
+        <Button
+          variant="outlined"
+          startIcon={<DownloadIcon />}
+          onClick={handleExcelDownload}
+          disabled={exportLoading}
+        >
+          엑셀 통계 다운로드
+        </Button>
       </Box>
 
       {stats && (
