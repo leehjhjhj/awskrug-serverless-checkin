@@ -24,6 +24,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import InputAdornment from '@mui/material/InputAdornment';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
 import checkinService from '../../services/checkinService';
@@ -53,6 +54,7 @@ const EventCheckins = () => {
     message: '',
     severity: 'success'
   });
+  const [nameFilter, setNameFilter] = useState('');
 
   useEffect(() => {
     fetchEventData();
@@ -341,11 +343,30 @@ const EventCheckins = () => {
 
       {/* 체크인 목록 */}
       <Paper sx={{ height: 500, width: '100%' }}>
-        <Typography variant="h6" sx={{ p: 2 }}>
-          전체 체크인 목록
-        </Typography>
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6">
+            전체 체크인 목록
+          </Typography>
+          <TextField
+            placeholder="이름으로 검색"
+            variant="outlined"
+            size="small"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ width: 250 }}
+          />
+        </Box>
         <DataGrid
-          rows={checkins}
+          rows={checkins.filter(checkin =>
+            checkin.name?.toLowerCase().includes(nameFilter.toLowerCase())
+          )}
           columns={[
             { field: 'name', headerName: '이름', width: 200 },
             {

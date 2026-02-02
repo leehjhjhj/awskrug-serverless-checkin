@@ -20,6 +20,8 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import SearchIcon from '@mui/icons-material/Search';
+import InputAdornment from '@mui/material/InputAdornment';
 import registrationService from '../../services/registrationService';
 
 const EventRegistrations = () => {
@@ -39,6 +41,7 @@ const EventRegistrations = () => {
     message: '',
     severity: 'success'
   });
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -211,6 +214,10 @@ const EventRegistrations = () => {
     },
   ];
 
+  const filteredRegistrations = registrations.filter(registration =>
+    registration.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Box sx={{ p: 3 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -235,9 +242,27 @@ const EventRegistrations = () => {
         </Button>
       </Box>
 
+      <Box mb={2}>
+        <TextField
+          placeholder="이름으로 검색"
+          variant="outlined"
+          size="small"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: 300 }}
+        />
+      </Box>
+
       <Paper sx={{ height: 400, width: '100%' }}>
         <DataGrid
-          rows={registrations}
+          rows={filteredRegistrations}
           columns={columns}
           pageSize={10}
           rowsPerPageOptions={[10, 25, 50]}
