@@ -49,3 +49,8 @@ A serverless attendance tracking system for AWSKRUG meetups using AWS services.
     "phone": "string",
     "event_code": "string"
   }
+
+
+## symbolic lint
+
+ln -s common_layer/model.py model.py && ln -s common_layer/settings.py settings.py && ln -s common_layer/db_connection.py db_connection.py && ln -s common_layer/hash_tool.py hash_tool.py && ln -s common_layer/common_schema.py common_schema.py && ln -s common_layer/dynamodb_model.py dynamodb_model.py && ln -s common_layer/transaction_manager.py transaction_manager.py && ln -s common_layer/parameter_store.py parameter_store.py && ln -s common_layer/exceptions exceptions

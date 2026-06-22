@@ -32,7 +32,7 @@ const Login = () => {
       setError('');
       setLoading(true);
       await login(username, password);
-      navigate('/dashboard');
+      navigate('/groups');
     } catch (error) {
       setError('로그인에 실패했습니다. 사용자 이름과 비밀번호를 확인해주세요.');
     } finally {
@@ -68,7 +68,7 @@ const Login = () => {
           }}
         >
           <Typography variant="h5" component="h1" gutterBottom>
-            AWSKRUG 서버리스 체크인
+            AWSKRUG 체크인
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
             관리자 로그인

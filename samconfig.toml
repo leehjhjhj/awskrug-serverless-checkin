@@ -4,7 +4,7 @@ version = 0.1
 
 [default]
 [default.global.parameters]
-stack_name = "sls_checkin"
+stack_name = "sls-checkin"
 
 [default.build.parameters]
 cached = true
@@ -17,7 +17,7 @@ lint = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
-s3_prefix = "awskrug_sls_checkin"
+s3_prefix = "awskrug-sls-checkin"
 region = "ap-northeast-2"
 disable_rollback = true
 image_repositories = []

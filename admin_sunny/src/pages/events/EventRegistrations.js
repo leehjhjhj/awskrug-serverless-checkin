@@ -20,6 +20,8 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import SearchIcon from '@mui/icons-material/Search';
+import InputAdornment from '@mui/material/InputAdornment';
 import registrationService from '../../services/registrationService';
 
 const EventRegistrations = () => {
@@ -32,7 +34,6 @@ const EventRegistrations = () => {
   const [editingRegistration, setEditingRegistration] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     phone: ''
   });
   const [snackbar, setSnackbar] = useState({
@@ -40,6 +41,7 @@ const EventRegistrations = () => {
     message: '',
     severity: 'success'
   });
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -106,7 +108,6 @@ const EventRegistrations = () => {
     setEditingRegistration(registration);
     setFormData({
       name: registration?.name || '',
-      email: registration?.email || '',
       phone: registration?.phone || ''
     });
     setOpenDialog(true);
@@ -117,7 +118,6 @@ const EventRegistrations = () => {
     setEditingRegistration(null);
     setFormData({
       name: '',
-      email: '',
       phone: ''
     });
   };
@@ -179,7 +179,12 @@ const EventRegistrations = () => {
   const columns = [
     { field: 'phone', headerName: '전화번호', width: 150 },
     { field: 'name', headerName: '이름', width: 200 },
-    { field: 'email', headerName: '이메일', width: 250 },
+    {
+      field: 'attendance_count',
+      headerName: '참석 횟수',
+      width: 120,
+      type: 'number'
+    },
     {
       field: 'actions',
       headerName: '작업',
@@ -209,6 +214,10 @@ const EventRegistrations = () => {
     },
   ];
 
+  const filteredRegistrations = registrations.filter(registration =>
+    registration.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Box sx={{ p: 3 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -233,9 +242,27 @@ const EventRegistrations = () => {
         </Button>
       </Box>
 
+      <Box mb={2}>
+        <TextField
+          placeholder="이름으로 검색"
+          variant="outlined"
+          size="small"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: 300 }}
+        />
+      </Box>
+
       <Paper sx={{ height: 400, width: '100%' }}>
         <DataGrid
-          rows={registrations}
+          rows={filteredRegistrations}
           columns={columns}
           pageSize={10}
           rowsPerPageOptions={[10, 25, 50]}
@@ -259,16 +286,6 @@ const EventRegistrations = () => {
             variant="outlined"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="이메일"
-            type="email"
-            fullWidth
-            variant="outlined"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             sx={{ mb: 2 }}
           />
           <TextField

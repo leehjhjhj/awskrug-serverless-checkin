@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  Box, Typography, Button, IconButton, Tooltip
+  Box, Typography, Button, IconButton, Tooltip, TextField, InputAdornment
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search';
 import DataTable from '../../components/common/DataTable';
 import AlertMessage from '../../components/common/AlertMessage';
 import LoadingBackdrop from '../../components/common/LoadingBackdrop';
@@ -17,6 +18,7 @@ const CheckinList = () => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
   const [formOpen, setFormOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (eventCode) {
@@ -86,19 +88,18 @@ const CheckinList = () => {
 
   const columns = [
     { field: 'name', headerName: '이름', width: 150 },
-    { 
-      field: 'phone', 
-      headerName: '전화번호', 
+    {
+      field: 'phone',
+      headerName: '전화번호',
       width: 200,
       valueFormatter: (params) => {
         // Display masked phone number
         return params.value ? '********' : '';
       }
     },
-    { field: 'email', headerName: '이메일', width: 250 },
-    { 
-      field: 'checked_at', 
-      headerName: '체크인 시간', 
+    {
+      field: 'checked_at',
+      headerName: '체크인 시간',
       width: 200,
       valueFormatter: (params) => {
         return params.value ? new Date(params.value).toLocaleString('ko-KR') : '';
@@ -123,6 +124,10 @@ const CheckinList = () => {
     },
   ];
 
+  const filteredCheckins = checkins.filter(checkin =>
+    checkin.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Box sx={{ p: 3 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -139,8 +144,26 @@ const CheckinList = () => {
         </Button>
       </Box>
 
+      <Box mb={2}>
+        <TextField
+          placeholder="이름으로 검색"
+          variant="outlined"
+          size="small"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: 300 }}
+        />
+      </Box>
+
       <DataTable
-        rows={checkins}
+        rows={filteredCheckins}
         columns={columns}
         loading={loading}
       />

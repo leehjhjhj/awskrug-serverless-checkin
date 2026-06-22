@@ -12,7 +12,6 @@ import Footer from './components/common/Footer';
 
 // Pages
 import Login from './pages/login/Login';
-import Dashboard from './pages/dashboard/Dashboard';
 import GlobalStats from './pages/stats/GlobalStats';
 import ExcelUpload from './pages/upload/ExcelUpload';
 import EventList from './pages/events/EventList';
@@ -23,6 +22,8 @@ import EventCheckins from './pages/events/EventCheckins';
 import RegistrationList from './pages/registrations/RegistrationList';
 import CheckinList from './pages/checkins/CheckinList';
 import EventStats from './pages/stats/EventStats';
+import EventRetentionStats from './pages/stats/EventRetentionStats';
+import OrganizationStats from './pages/stats/OrganizationStats';
 
 // Group Pages - 소모임 관련 페이지
 import GroupList from './pages/groups/GroupList';
@@ -90,15 +91,7 @@ function App() {
             <Route path="/" element={
               <ProtectedRoute>
                 <Layout>
-                  <Navigate to="/dashboard" replace />
-                </Layout>
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Dashboard />
+                  <Navigate to="/groups" replace />
                 </Layout>
               </ProtectedRoute>
             } />
@@ -153,7 +146,7 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             } />
-            
+
             <Route path="/events/new" element={
               <ProtectedRoute>
                 <Layout>
@@ -161,7 +154,7 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             } />
-            
+
             <Route path="/events/:eventCode" element={
               <ProtectedRoute>
                 <Layout>
@@ -201,7 +194,33 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             } />
-            
+
+            {/* 통계 관련 라우트 */}
+            <Route path="/statistics/event/:eventCode/retention" element={
+              <ProtectedRoute>
+                <Layout>
+                  <EventRetentionStats />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/statistics/organization/:organizationCode" element={
+              <ProtectedRoute>
+                <Layout>
+                  <OrganizationStats />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
+            {/* 체크인 관련 라우트 */}
+            <Route path="/checkins/:eventCode" element={
+              <ProtectedRoute>
+                <Layout>
+                  <CheckinList />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
             {/* 글로벌 통계 라우트 임시 비활성화 */}
             {/* <Route path="/stats" element={
               <ProtectedRoute>

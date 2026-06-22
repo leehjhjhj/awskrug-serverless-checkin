@@ -1,25 +1,17 @@
 import os
 
-from pydantic_settings import BaseSettings
-from pydantic import Field
-from parameter_store import ParameterStore
+class Settings:
+    def __init__(self):
+        self.client_url = os.environ.get('CLIENT_URL')
+        self.qr_s3_bucket_name = os.environ.get('QR_S3_BUCKET_NAME')
+        self.smtp_username = os.environ.get('SMTP_USERNAME')
+        self.smtp_password = os.environ.get('SMTP_PASSWORD')
+        self.salt = os.environ.get('SALT')
+        self.cluster_arn = os.environ.get('CLUSTER_ARN')
+        self.cluster_endpoint = os.environ.get('CLUSTER_ENDPOINT')
+        self.db_user = os.environ.get('DB_USER')
+        self.db_name = os.environ.get('DB_NAME')
+        self.region = os.environ.get('REGION')
 
-env = os.environ.get("ENV", "dev")
-parameter_store = ParameterStore()
-
-parameters = {
-    'client_url': parameter_store.get_parameter(f"/{env}/client-url"),
-    'qr_s3_bucket_name': parameter_store.get_parameter(f"/{env}/qr-s3"),
-    'smtp_username': parameter_store.get_parameter(f"/{env}/smtp-username"),
-    'smtp_password': parameter_store.get_parameter(f"/{env}/smtp-password"),
-    'salt': parameter_store.get_parameter("/salt")
-}
-
-class Settings(BaseSettings):
-    client_url: str = Field(default=parameters['client_url'])
-    qr_s3_bucket_name: str = Field(default=parameters['qr_s3_bucket_name'])
-    smtp_username: str = Field(default=parameters['smtp_username'])
-    smtp_password: str = Field(default=parameters['smtp_password'])
-    salt: str = Field(default=parameters['salt'])
 
 settings = Settings()

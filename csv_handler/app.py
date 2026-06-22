@@ -5,6 +5,7 @@ import boto3
 import io
 
 from library import process_csv_data, insert_data_to_db
+from db_connection import get_session
 
 
 logger = logging.getLogger()
@@ -20,12 +21,15 @@ def lambda_handler(event, context):
         
         file_content = response['Body'].read()
         excel_data = io.BytesIO(file_content)
-        df = pd.read_excel(excel_data)
+        # Read phone numbers as string to preserve leading zeros
+        df = pd.read_excel(excel_data, dtype={'visitor_mobile': str})
         
         event_code = key.split('_')[-1].split('.')[0]
 
         result_df = process_csv_data(df)
-        insert_data_to_db(result_df, event_code)
+        with get_session() as session:
+            insert_data_to_db(result_df, event_code, session)
+            session.commit()
         logger.info(f"Processed {len(result_df)} rows of data")
         
         return {

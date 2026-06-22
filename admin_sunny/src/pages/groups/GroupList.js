@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, Typography, Paper, Button, Box, 
-  Grid, Card, CardContent, CardActions, Chip
+import {
+  Container, Typography, Button, Box,
+  Grid, Card, CardContent, CardActions, TextField, InputAdornment
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import { Link } from 'react-router-dom';
-import AddIcon from '@mui/icons-material/Add';
-import GroupIcon from '@mui/icons-material/Group';
-import EventIcon from '@mui/icons-material/Event';
-import PeopleIcon from '@mui/icons-material/People';
 import organizationService from '../../services/organizationService';
 
 // Mock data for groups
@@ -44,6 +41,7 @@ const mockGroups = [
 const GroupList = () => {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -60,6 +58,7 @@ const GroupList = () => {
           const transformedGroups = organizationsData.map(org => ({
             group_code: org.organization_code,
             group_name: org.organization_name,
+            slug: org.slug || '',
             description: org.organization_name, // Use name as description since API doesn't provide description
             created_at: new Date().toISOString(), // Default created date
             logo_url: org.full_logo_url || 'https://via.placeholder.com/150', // Use full_logo_url or fallback to placeholder
@@ -92,6 +91,13 @@ const GroupList = () => {
     return <Box sx={{ p: 3 }}>로딩 중...</Box>;
   }
 
+  // Filter groups based on search query
+  const filteredGroups = groups.filter(group =>
+    group.group_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    group.group_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    group.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
@@ -100,60 +106,61 @@ const GroupList = () => {
         </Typography>
       </Box>
 
+      <Box sx={{ mb: 3 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="소모임 이름, 코드, 설명으로 검색..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
+
       <Grid container spacing={3}>
-        {groups.map((group) => (
+        {filteredGroups.map((group) => (
           <Grid item xs={12} md={4} key={group.group_code}>
-            <Card>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
-                <img 
-                  src={group.logo_url} 
-                  alt={group.group_name} 
+                <img
+                  src={group.logo_url}
+                  alt={group.group_name}
                   style={{ height: 100, objectFit: 'contain' }}
                 />
               </Box>
-              <CardContent>
+              <CardContent sx={{ flexGrow: 1 }}>
                 <Typography variant="h5" component="div">
                   {group.group_name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary">
                   {group.description}
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-                  <Chip 
-                    icon={<EventIcon />} 
-                    label={`이벤트 ${group.event_count}개`} 
-                    size="small" 
-                    color="primary" 
-                    variant="outlined"
-                  />
-                  <Chip 
-                    icon={<PeopleIcon />} 
-                    label={`회원 ${group.member_count}명`} 
-                    size="small" 
-                    color="secondary" 
-                    variant="outlined"
-                  />
-                </Box>
               </CardContent>
               <CardActions>
-                <Button 
-                  size="small" 
-                  component={Link} 
+                <Button
+                  size="small"
+                  component={Link}
                   to={`/groups/${group.group_code}`}
                 >
                   상세 보기
                 </Button>
-                <Button 
-                  size="small" 
-                  component={Link} 
+                <Button
+                  size="small"
+                  component={Link}
                   to={`/groups/${group.group_code}/edit`}
                 >
                   수정
                 </Button>
-                <Button 
-                  size="small" 
-                  component={Link} 
-                  to={`/groups/${group.group_code}/stats`}
+                <Button
+                  size="small"
+                  component={Link}
+                  to={`/statistics/organization/${group.group_code}`}
                 >
                   통계
                 </Button>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -18,36 +18,82 @@ import {
   Card,
   CardContent
 } from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import InputAdornment from '@mui/material/InputAdornment';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
 import checkinService from '../../services/checkinService';
+import eventService from '../../services/eventService';
 
 const EventCheckins = () => {
   const { eventCode } = useParams();
   const navigate = useNavigate();
-  
+
   const [searchPhone, setSearchPhone] = useState('');
   const [checkin, setCheckin] = useState(null);
+  const [checkins, setCheckins] = useState([]);
+  const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     phone: '',
     name: '',
-    email: '',
     checked_at: dayjs(),
-    event_version: '1'
+    event_version: '1',
+    organization_code: ''
   });
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
+  const [nameFilter, setNameFilter] = useState('');
+
+  useEffect(() => {
+    fetchEventData();
+    fetchCheckins();
+  }, [eventCode]);
+
+  const fetchEventData = async () => {
+    try {
+      const eventData = await eventService.getEventByCode(eventCode);
+      setEvent(eventData);
+    } catch (error) {
+      console.error('Failed to fetch event data:', error);
+      setSnackbar({
+        open: true,
+        message: '이벤트 정보를 불러오는데 실패했습니다.',
+        severity: 'error'
+      });
+    }
+  };
+
+  const fetchCheckins = async () => {
+    try {
+      setListLoading(true);
+      const data = await checkinService.getCheckins(eventCode);
+      setCheckins(Array.isArray(data) ? data.map((item, index) => ({
+        ...item,
+        id: item.phone || index
+      })) : []);
+    } catch (error) {
+      console.error('Failed to fetch checkins:', error);
+      setSnackbar({
+        open: true,
+        message: '체크인 목록을 불러오는데 실패했습니다.',
+        severity: 'error'
+      });
+    } finally {
+      setListLoading(false);
+    }
+  };
 
   const handleSearch = async () => {
     if (!searchPhone.trim()) {
@@ -86,9 +132,9 @@ const EventCheckins = () => {
     setFormData({
       phone: editData?.phone || '',
       name: editData?.name || '',
-      email: editData?.email || '',
       checked_at: editData?.checked_at ? dayjs(editData.checked_at) : dayjs(),
-      event_version: editData?.event_version || '1'
+      event_version: editData?.event_version || event?.event_version || '1',
+      organization_code: editData?.organization_code || event?.organization_code || ''
     });
     setOpenDialog(true);
   };
@@ -99,9 +145,9 @@ const EventCheckins = () => {
     setFormData({
       phone: '',
       name: '',
-      email: '',
       checked_at: dayjs(),
-      event_version: '1'
+      event_version: '1',
+      organization_code: ''
     });
   };
 
@@ -111,9 +157,9 @@ const EventCheckins = () => {
         phone: formData.phone,
         event_code: eventCode,
         name: formData.name,
-        email: formData.email,
         checked_at: formData.checked_at.toISOString(),
-        event_version: formData.event_version
+        event_version: formData.event_version,
+        organization_code: formData.organization_code
       };
 
       if (isEditing) {
@@ -136,6 +182,7 @@ const EventCheckins = () => {
         });
       }
       handleCloseDialog();
+      fetchCheckins(); // Refresh the list
     } catch (error) {
       console.error('Failed to save checkin:', error);
       setSnackbar({
@@ -156,6 +203,7 @@ const EventCheckins = () => {
           severity: 'success'
         });
         setCheckin(null);
+        fetchCheckins(); // Refresh the list
       } catch (error) {
         console.error('Failed to delete checkin:', error);
         setSnackbar({
@@ -274,14 +322,6 @@ const EventCheckins = () => {
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography variant="subtitle2" color="text.secondary">
-                  이메일
-                </Typography>
-                <Typography variant="body1">
-                  {checkin.email || '-'}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="text.secondary">
                   체크인 시간
                 </Typography>
                 <Typography variant="body1">
@@ -300,6 +340,91 @@ const EventCheckins = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* 체크인 목록 */}
+      <Paper sx={{ height: 500, width: '100%' }}>
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6">
+            전체 체크인 목록
+          </Typography>
+          <TextField
+            placeholder="이름으로 검색"
+            variant="outlined"
+            size="small"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ width: 250 }}
+          />
+        </Box>
+        <DataGrid
+          rows={checkins.filter(checkin =>
+            checkin.name?.toLowerCase().includes(nameFilter.toLowerCase())
+          )}
+          columns={[
+            { field: 'name', headerName: '이름', width: 200 },
+            {
+              field: 'phone',
+              headerName: '전화번호',
+              width: 180,
+              valueFormatter: (params) => {
+                return params.value ? '********' : '';
+              }
+            },
+            {
+              field: 'checked_at',
+              headerName: '체크인 시간',
+              width: 220,
+              valueFormatter: (params) => {
+                return params.value ? new Date(params.value).toLocaleString('ko-KR') : '';
+              }
+            },
+            {
+              field: 'event_version',
+              headerName: '이벤트 버전',
+              width: 120
+            },
+            {
+              field: 'actions',
+              headerName: '작업',
+              width: 120,
+              sortable: false,
+              renderCell: (params) => (
+                <Box>
+                  <Tooltip title="수정">
+                    <IconButton
+                      onClick={() => handleOpenDialog(params.row)}
+                      size="small"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="삭제">
+                    <IconButton
+                      onClick={() => handleDelete(params.row.phone)}
+                      size="small"
+                      color="error"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              ),
+            },
+          ]}
+          pageSize={10}
+          rowsPerPageOptions={[10, 25, 50]}
+          loading={listLoading}
+          disableSelectionOnClick
+          getRowId={(row) => row.phone || row.id}
+        />
+      </Paper>
 
       {/* 체크인 추가/수정 다이얼로그 */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
@@ -328,16 +453,6 @@ const EventCheckins = () => {
             variant="outlined"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="이메일"
-            type="email"
-            fullWidth
-            variant="outlined"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             sx={{ mb: 2 }}
           />
           <DateTimePicker
