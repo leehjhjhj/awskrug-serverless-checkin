@@ -166,7 +166,7 @@ Resources:
                     Value: .xlsx
       Layers:
         - !Ref CommonLayer
-        - "arn:aws:lambda:ap-northeast-2:770693421928:layer:Klayers-p311-pandas:18"
+        - "arn:aws:lambda:ap-northeast-2:770693421928:layer:Klayers-p311-pandas:22"
   ApiFunction:
     Type: AWS::Serverless::Function
     Properties:
