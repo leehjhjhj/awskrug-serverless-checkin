@@ -90,6 +90,51 @@ const checkinService = {
     }
   },
 
+  // Create a checkin directly from a registration (one-click check-in).
+  // `phone` must be the hashed phone from GET /registration/list; the server does NOT re-hash it.
+  createCheckinFromRegistration: async (eventCode, phone) => {
+    console.log('Creating checkin from registration:', { eventCode, phone });
+
+    try {
+      const payload = {
+        event_code: eventCode,
+        phone: phone
+      };
+
+      const response = await api.post('/checkin/from-registration', payload);
+      console.log('Checkin from registration API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Checkin from registration API error:', error);
+      // Fallback to mock data if API fails
+      if (config.USE_MOCK_DATA) {
+        console.log('Falling back to mock checkin data');
+        const registrations = mockRegistrations[eventCode] || [];
+        const registration = registrations.find(r => r.phone === phone);
+        if (!registration) {
+          throw new Error('Registration not found');
+        }
+
+        if (!mockCheckins[eventCode]) {
+          mockCheckins[eventCode] = [];
+        }
+        if (mockCheckins[eventCode].some(c => c.phone === phone)) {
+          throw new Error('Already checked in');
+        }
+
+        const newCheckin = {
+          phone: registration.phone,
+          event_code: eventCode,
+          name: registration.name,
+          checked_at: new Date().toISOString()
+        };
+        mockCheckins[eventCode].push(newCheckin);
+        return newCheckin;
+      }
+      throw error;
+    }
+  },
+
   // Delete a checkin
   deleteCheckin: async (phone, eventCode) => {
     console.log('Deleting checkin for phone:', phone, 'event:', eventCode);

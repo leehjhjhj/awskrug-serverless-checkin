@@ -13,7 +13,9 @@ import {
   DialogActions,
   TextField,
   Alert,
-  Snackbar
+  Snackbar,
+  Chip,
+  CircularProgress
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
@@ -21,14 +23,23 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SearchIcon from '@mui/icons-material/Search';
+import HowToRegIcon from '@mui/icons-material/HowToReg';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import InputAdornment from '@mui/material/InputAdornment';
 import registrationService from '../../services/registrationService';
+import checkinService from '../../services/checkinService';
 
 const EventRegistrations = () => {
   const { eventCode } = useParams();
   const navigate = useNavigate();
   
   const [registrations, setRegistrations] = useState([]);
+  // Phones (hashed) that are already checked in for THIS event.
+  // Source of truth is GET /checkin/{event_code}, NOT attendance_count
+  // (attendance_count is a cross-event cumulative count, not a per-event flag).
+  const [checkedInPhones, setCheckedInPhones] = useState(new Set());
+  // Phones with an in-flight check-in request (to disable the button and block double-clicks).
+  const [checkingInPhones, setCheckingInPhones] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingRegistration, setEditingRegistration] = useState(null);
@@ -52,14 +63,22 @@ const EventRegistrations = () => {
       try {
         setLoading(true);
         console.log('Fetching registrations for event:', eventCode);
-        const data = await registrationService.getRegistrations(eventCode);
-        
+        const [data, checkins] = await Promise.all([
+          registrationService.getRegistrations(eventCode),
+          // Best-effort: a failed checkin fetch shouldn't block the registration list.
+          checkinService.getCheckins(eventCode).catch((e) => {
+            console.error('Failed to fetch checkins:', e);
+            return [];
+          })
+        ]);
+
         if (!cancelled) {
           console.log('Registration data received:', data);
           setRegistrations(data.map(registration => ({
             ...registration,
             id: registration.phone
           })));
+          setCheckedInPhones(new Set((checkins || []).map(c => c.phone)));
         }
       } catch (error) {
         if (!cancelled) {
@@ -87,11 +106,20 @@ const EventRegistrations = () => {
   const refetchRegistrations = async () => {
     try {
       setLoading(true);
-      const data = await registrationService.getRegistrations(eventCode);
+      const [data, checkins] = await Promise.all([
+        registrationService.getRegistrations(eventCode),
+        checkinService.getCheckins(eventCode).catch((e) => {
+          console.error('Failed to fetch checkins:', e);
+          return null;
+        })
+      ]);
       setRegistrations(data.map(registration => ({
         ...registration,
         id: registration.phone
       })));
+      if (checkins) {
+        setCheckedInPhones(new Set(checkins.map(c => c.phone)));
+      }
     } catch (error) {
       console.error('Failed to fetch registrations:', error);
       setSnackbar({
@@ -101,6 +129,15 @@ const EventRegistrations = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refetchCheckins = async () => {
+    try {
+      const checkins = await checkinService.getCheckins(eventCode);
+      setCheckedInPhones(new Set((checkins || []).map(c => c.phone)));
+    } catch (error) {
+      console.error('Failed to fetch checkins:', error);
     }
   };
 
@@ -176,6 +213,57 @@ const EventRegistrations = () => {
     }
   };
 
+  const handleCheckin = async (registration) => {
+    const phone = registration.phone;
+    // Block double-clicks while a request is in flight.
+    if (checkingInPhones.has(phone) || checkedInPhones.has(phone)) {
+      return;
+    }
+    setCheckingInPhones(prev => new Set(prev).add(phone));
+
+    try {
+      await checkinService.createCheckinFromRegistration(eventCode, phone);
+      setCheckedInPhones(prev => new Set(prev).add(phone));
+      setSnackbar({
+        open: true,
+        message: `${registration.name || '등록자'}님이 체크인되었습니다.`,
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Failed to check in registration:', error);
+      const status = error.response?.status;
+      const detail = error.response?.data?.detail;
+      if (status === 409) {
+        // Already checked in — mark as such and resync from the server.
+        setCheckedInPhones(prev => new Set(prev).add(phone));
+        setSnackbar({
+          open: true,
+          message: '이미 체크인되었습니다.',
+          severity: 'info'
+        });
+        refetchCheckins();
+      } else if (status === 404) {
+        setSnackbar({
+          open: true,
+          message: detail || '등록자를 찾을 수 없습니다.',
+          severity: 'error'
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: '체크인에 실패했습니다.',
+          severity: 'error'
+        });
+      }
+    } finally {
+      setCheckingInPhones(prev => {
+        const next = new Set(prev);
+        next.delete(phone);
+        return next;
+      });
+    }
+  };
+
   const columns = [
     { field: 'phone', headerName: '전화번호', width: 150 },
     { field: 'name', headerName: '이름', width: 200 },
@@ -184,6 +272,43 @@ const EventRegistrations = () => {
       headerName: '참석 횟수',
       width: 120,
       type: 'number'
+    },
+    {
+      field: 'checkin',
+      headerName: '체크인',
+      width: 140,
+      sortable: false,
+      renderCell: (params) => {
+        const phone = params.row.phone;
+        if (checkedInPhones.has(phone)) {
+          return (
+            <Chip
+              icon={<CheckCircleIcon />}
+              label="체크인됨"
+              color="success"
+              size="small"
+              variant="outlined"
+            />
+          );
+        }
+        const isCheckingIn = checkingInPhones.has(phone);
+        return (
+          <Button
+            variant="contained"
+            color="success"
+            size="small"
+            startIcon={
+              isCheckingIn
+                ? <CircularProgress size={16} color="inherit" />
+                : <HowToRegIcon />
+            }
+            disabled={isCheckingIn}
+            onClick={() => handleCheckin(params.row)}
+          >
+            체크인
+          </Button>
+        );
+      },
     },
     {
       field: 'actions',
