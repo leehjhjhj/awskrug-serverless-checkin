@@ -30,20 +30,19 @@ const EventList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const organizationCode = searchParams.get('group');
   const [events, setEvents] = useState([]);
+  const [rowCount, setRowCount] = useState(0);
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 });
+  const [refreshKey, setRefreshKey] = useState(0);
 
+  // 필터용 조직 목록은 최초 1회만 로드
   useEffect(() => {
     let cancelled = false;
-
-    const loadData = async () => {
-      if (cancelled) return;
-
+    (async () => {
       try {
-        setLoading(true);
-
-        // Load organizations for filter
         const organizationsData = await organizationService.getAllOrganizations();
         if (!cancelled) {
           setOrganizations(organizationsData.map(org => ({
@@ -51,57 +50,56 @@ const EventList = () => {
             name: org.organization_name
           })));
         }
+      } catch (error) {
+        if (!cancelled) console.error('Failed to fetch organizations:', error);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
-        // Load events
+  // 검색어 디바운스(300ms) + 검색 변경 시 첫 페이지로 리셋
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPaginationModel(prev => ({ ...prev, page: 0 }));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // 이벤트 목록: 서버 사이드 페이지네이션 + 검색
+  useEffect(() => {
+    let cancelled = false;
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const params = {
+          page: paginationModel.page,
+          size: paginationModel.pageSize,
+          search: debouncedSearch || undefined,
+        };
         const data = organizationCode
-          ? await eventService.getEventsByOrganization(organizationCode)
-          : await eventService.getAllEvents();
+          ? await eventService.getEventsByOrganization(organizationCode, params)
+          : await eventService.getAllEvents(params);
 
         if (!cancelled) {
           const eventList = data.events || [];
-          setEvents(eventList.map(event => ({
-            ...event,
-            id: event.event_code
-          })));
+          setEvents(eventList.map(event => ({ ...event, id: event.event_code })));
+          setRowCount(data.total ?? 0);
         }
       } catch (error) {
-        if (!cancelled) {
-          console.error('Failed to fetch events:', error);
-        }
+        if (!cancelled) console.error('Failed to fetch events:', error);
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     };
 
-    loadData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [organizationCode]);
-
-  const refetchEvents = async () => {
-    try {
-      setLoading(true);
-      const data = organizationCode
-        ? await eventService.getEventsByOrganization(organizationCode)
-        : await eventService.getAllEvents();
-      const eventList = data.events || [];
-      setEvents(eventList.map(event => ({
-        ...event,
-        id: event.event_code
-      })));
-    } catch (error) {
-      console.error('Failed to fetch events:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchEvents();
+    return () => { cancelled = true; };
+  }, [organizationCode, paginationModel.page, paginationModel.pageSize, debouncedSearch, refreshKey]);
 
   const handleOrganizationFilter = (event) => {
     const value = event.target.value;
+    setPaginationModel(prev => ({ ...prev, page: 0 }));
     if (value) {
       setSearchParams({ group: value });
     } else {
@@ -110,6 +108,7 @@ const EventList = () => {
   };
 
   const handleClearFilter = () => {
+    setPaginationModel(prev => ({ ...prev, page: 0 }));
     setSearchParams({});
   };
 
@@ -117,17 +116,12 @@ const EventList = () => {
     if (window.confirm('이 이벤트를 삭제하시겠습니까?')) {
       try {
         await eventService.deleteEvent(eventCode);
-        refetchEvents();
+        setRefreshKey(k => k + 1);
       } catch (error) {
         console.error('Failed to delete event:', error);
       }
     }
   };
-
-  const filteredEvents = events.filter(event => 
-    event.event_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.event_code?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const columns = [
     { field: 'event_code', headerName: '이벤트 코드', width: 130 },
@@ -249,15 +243,19 @@ const EventList = () => {
         />
       </Paper>
 
-      <Paper sx={{ height: 400, width: '100%' }}>
+      <Paper sx={{ width: '100%' }}>
         <DataGrid
-          rows={filteredEvents}
+          autoHeight
+          rows={events}
           columns={columns}
-          pageSize={5}
-          rowsPerPageOptions={[5, 10, 20]}
           loading={loading}
-          disableSelectionOnClick
+          disableRowSelectionOnClick
           getRowId={(row) => row.event_code}
+          paginationMode="server"
+          rowCount={rowCount}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          pageSizeOptions={[10, 25, 50, 100]}
         />
       </Paper>
     </Box>
