@@ -22,13 +22,13 @@ export const getOrganizationStats = async (organizationCode) => {
   }
 };
 
-// 이벤트 버전별 통계 조회
-export const getEventVersionStats = async (eventVersion) => {
+// 조직별 이벤트 버전 통계 조회
+export const getEventVersionStats = async (organizationCode, eventVersion) => {
   try {
-    const response = await api.get(`/statistics/event-version/${eventVersion}`);
+    const response = await api.get(`/statistics/organization/${organizationCode}/event-version/${eventVersion}`);
     return response.data;
   } catch (error) {
-    console.error(`Error fetching stats for event version ${eventVersion}:`, error);
+    console.error(`Error fetching stats for organization ${organizationCode} version ${eventVersion}:`, error);
     throw error;
   }
 };

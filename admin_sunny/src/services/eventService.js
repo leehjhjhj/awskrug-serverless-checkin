@@ -40,10 +40,23 @@ const mockEvents = [
   }
 ];
 
+// 빈 값(undefined/null/'')은 제외하고 쿼리 문자열 생성
+const buildQuery = (params = {}) => {
+  const sp = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      sp.append(key, value);
+    }
+  });
+  const qs = sp.toString();
+  return qs ? `?${qs}` : '';
+};
+
 // 모든 이벤트 목록 조회
-export const getAllEvents = async (groupCode = null) => {
+// params 미지정 시 전체 반환(기존 동작). { page, size, order, search } 지정 시 서버 페이지네이션/검색.
+export const getAllEvents = async (params = {}) => {
   try {
-    const response = await api.get('/event');
+    const response = await api.get(`/event${buildQuery(params)}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching events:', error);
@@ -52,9 +65,9 @@ export const getAllEvents = async (groupCode = null) => {
 };
 
 // organization_code별 이벤트 목록 조회
-export const getEventsByOrganization = async (organizationCode) => {
+export const getEventsByOrganization = async (organizationCode, params = {}) => {
   try {
-    const response = await api.get(`/event/organization/${organizationCode}`);
+    const response = await api.get(`/event/organization/${organizationCode}${buildQuery(params)}`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching events for organization ${organizationCode}:`, error);
