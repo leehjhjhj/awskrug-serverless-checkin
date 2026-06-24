@@ -104,7 +104,7 @@ const OrganizationStats = () => {
 
     try {
       setVersionStatsLoading(prev => ({ ...prev, [eventVersion]: true }));
-      const data = await statisticsService.getEventVersionStats(eventVersion);
+      const data = await statisticsService.getEventVersionStats(organizationCode, eventVersion);
       setVersionStats(prev => ({ ...prev, [eventVersion]: data }));
     } catch (error) {
       console.error(`Failed to fetch stats for version ${eventVersion}:`, error);
