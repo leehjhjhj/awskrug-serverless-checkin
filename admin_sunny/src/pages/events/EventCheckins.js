@@ -29,6 +29,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
 import checkinService from '../../services/checkinService';
 import eventService from '../../services/eventService';
+import EventDetailTabs from '../../components/events/EventDetailTabs';
 
 const EventCheckins = () => {
   const { eventCode } = useParams();
@@ -217,6 +218,7 @@ const EventCheckins = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <EventDetailTabs eventCode={eventCode} current={2} />
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Box display="flex" alignItems="center">
           <IconButton

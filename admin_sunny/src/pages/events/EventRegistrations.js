@@ -29,6 +29,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import InputAdornment from '@mui/material/InputAdornment';
 import registrationService from '../../services/registrationService';
 import checkinService from '../../services/checkinService';
+import EventDetailTabs from '../../components/events/EventDetailTabs';
 
 const EventRegistrations = () => {
   const { eventCode } = useParams();
@@ -355,6 +356,7 @@ const EventRegistrations = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <EventDetailTabs eventCode={eventCode} current={1} />
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Box display="flex" alignItems="center">
           <IconButton

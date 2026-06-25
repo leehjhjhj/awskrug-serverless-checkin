@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, Paper, Grid, Button, Tabs, Tab, Divider
+  Box, Typography, Paper, Grid, Button, Divider
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import eventService from '../../services/eventService';
 import AlertMessage from '../../components/common/AlertMessage';
 import LoadingBackdrop from '../../components/common/LoadingBackdrop';
 import ExcelUploadDialog from '../../components/common/ExcelUploadDialog';
+import EventDetailTabs from '../../components/events/EventDetailTabs';
 
 const EventDetail = () => {
   const { eventCode } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [tabValue, setTabValue] = useState(0);
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
@@ -35,28 +35,6 @@ const EventDetail = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-
-    // Navigate to appropriate tab
-    switch(newValue) {
-      case 0: // Details
-        navigate(`/events/${eventCode}`);
-        break;
-      case 1: // Registrations
-        navigate(`/events/${eventCode}/registrations`);
-        break;
-      case 2: // Checkins
-        navigate(`/events/${eventCode}/checkins`);
-        break;
-      case 3: // Stats
-        navigate(`/events/${eventCode}/stats`);
-        break;
-      default:
-        navigate(`/events/${eventCode}`);
     }
   };
 
@@ -97,18 +75,7 @@ const EventDetail = () => {
         </Box>
       </Box>
 
-      <Paper sx={{ mb: 3 }}>
-        <Tabs
-          value={tabValue}
-          onChange={handleTabChange}
-          variant="fullWidth"
-        >
-          <Tab label="상세 정보" />
-          <Tab label="등록자 관리" />
-          <Tab label="체크인 관리" />
-          <Tab label="통계" />
-        </Tabs>
-      </Paper>
+      <EventDetailTabs eventCode={eventCode} current={0} />
 
       {event && (
         <Paper elevation={2} sx={{ p: 3 }}>

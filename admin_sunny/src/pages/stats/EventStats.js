@@ -18,6 +18,7 @@ import {
 import eventService from '../../services/eventService';
 import statisticsService from '../../services/statisticsService';
 import AlertMessage from '../../components/common/AlertMessage';
+import EventDetailTabs from '../../components/events/EventDetailTabs';
 
 // Register ChartJS components
 ChartJS.register(
@@ -172,6 +173,7 @@ const EventStats = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <EventDetailTabs eventCode={eventCode} current={3} />
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h5" component="h1">
           이벤트 통계 - {eventCode}
