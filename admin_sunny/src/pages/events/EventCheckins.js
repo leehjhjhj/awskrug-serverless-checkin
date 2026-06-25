@@ -29,6 +29,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
 import checkinService from '../../services/checkinService';
 import eventService from '../../services/eventService';
+import EventDetailTabs from '../../components/events/EventDetailTabs';
 
 const EventCheckins = () => {
   const { eventCode } = useParams();
@@ -217,6 +218,7 @@ const EventCheckins = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <EventDetailTabs eventCode={eventCode} current={2} />
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Box display="flex" alignItems="center">
           <IconButton
@@ -342,7 +344,7 @@ const EventCheckins = () => {
       )}
 
       {/* 체크인 목록 */}
-      <Paper sx={{ height: 500, width: '100%' }}>
+      <Paper sx={{ width: '100%' }}>
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">
             전체 체크인 목록
@@ -418,11 +420,12 @@ const EventCheckins = () => {
               ),
             },
           ]}
-          pageSize={10}
-          rowsPerPageOptions={[10, 25, 50]}
+          autoHeight
           loading={listLoading}
-          disableSelectionOnClick
+          disableRowSelectionOnClick
           getRowId={(row) => row.phone || row.id}
+          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+          pageSizeOptions={[10, 25, 50]}
         />
       </Paper>
 
