@@ -126,9 +126,19 @@ const EventList = () => {
   const columns = [
     { field: 'event_code', headerName: '이벤트 코드', width: 130 },
     { field: 'event_name', headerName: '이벤트 이름', width: 250 },
-    { 
-      field: 'event_date_time', 
-      headerName: '이벤트 일시', 
+    {
+      field: 'is_private',
+      headerName: '공개여부',
+      width: 110,
+      renderCell: (params) => (
+        params.value
+          ? <Chip label="비공개" size="small" color="default" />
+          : <Chip label="공개" size="small" color="success" variant="outlined" />
+      ),
+    },
+    {
+      field: 'event_date_time',
+      headerName: '이벤트 일시',
       width: 200,
       valueFormatter: (params) => {
         return new Date(params.value).toLocaleString('ko-KR');

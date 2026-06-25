@@ -59,7 +59,8 @@ const EventForm = () => {
     code_expired_at: dayjs().add(3, 'hour'),
     description: '',
     event_version: '1',
-    qr_url: null
+    qr_url: null,
+    is_private: false
   });
 
   const [organizations, setOrganizations] = useState([]);
@@ -145,7 +146,8 @@ const EventForm = () => {
             code_expired_at: dayjs(eventData.code_expired_at),
             description: eventData.description,
             event_version: eventData.event_version,
-            qr_url: eventData.qr_url
+            qr_url: eventData.qr_url,
+            is_private: eventData.is_private ?? false
           });
           setLoading(false);
         }
@@ -232,13 +234,18 @@ const EventForm = () => {
   const handleAutoExpireChange = (e) => {
     const checked = e.target.checked;
     setAutoExpire(checked);
-    
+
     if (checked) {
       setFormData(prev => ({
         ...prev,
         code_expired_at: prev.event_date_time.add(3, 'hour')
       }));
     }
+  };
+
+  const handlePrivateChange = (e) => {
+    const checked = e.target.checked;
+    setFormData(prev => ({ ...prev, is_private: checked }));
   };
 
   const handleSubmit = async (e) => {
@@ -255,7 +262,8 @@ const EventForm = () => {
         description: formData.description,
         event_name: formData.event_name,
         event_version: formData.event_version,
-        organization_code: formData.organization_code
+        organization_code: formData.organization_code,
+        is_private: formData.is_private
       };
 
       // Include qr_url if it exists (for edit mode)
@@ -473,6 +481,18 @@ const EventForm = () => {
               </FormControl>
             </Grid>
             
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.is_private}
+                    onChange={handlePrivateChange}
+                  />
+                }
+                label="비공개 이벤트 (통계 집계에서 제외)"
+              />
+            </Grid>
+
             <Grid item xs={12}>
               <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                 <Button
