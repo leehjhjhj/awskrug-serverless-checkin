@@ -25,6 +25,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SearchIcon from '@mui/icons-material/Search';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import InputAdornment from '@mui/material/InputAdornment';
 import registrationService from '../../services/registrationService';
 import checkinService from '../../services/checkinService';
@@ -270,8 +271,17 @@ const EventRegistrations = () => {
     {
       field: 'attendance_count',
       headerName: '참석 횟수',
-      width: 120,
-      type: 'number'
+      width: 140,
+      type: 'number',
+      description: '같은 조직·같은 이벤트 버전 기준 누적 체크인 횟수 (비공개 이벤트 제외)',
+      renderHeader: () => (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <span>참석 횟수</span>
+          <Tooltip title="같은 조직·같은 이벤트 버전의 누적 체크인 횟수입니다. 비공개 이벤트는 제외됩니다.">
+            <InfoOutlinedIcon sx={{ fontSize: 16, color: 'text.secondary', cursor: 'help' }} />
+          </Tooltip>
+        </Box>
+      )
     },
     {
       field: 'checkin',
