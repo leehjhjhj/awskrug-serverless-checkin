@@ -103,17 +103,19 @@ const GlobalStats = () => {
     }
   };
 
+  const visibleEvents = events.filter(event => !event.is_private);
+
   // 차트 데이터 준비 - 실제 데이터가 없으므로 이벤트명과 기본값으로 표시
   const chartData = {
-    labels: events.slice(0, 10).map(event => 
-      event.event_name.length > 20 
-        ? event.event_name.substring(0, 20) + '...' 
+    labels: visibleEvents.slice(0, 10).map(event =>
+      event.event_name.length > 20
+        ? event.event_name.substring(0, 20) + '...'
         : event.event_name
     ),
     datasets: [
       {
         label: '이벤트 수',
-        data: events.slice(0, 10).map(() => 1),
+        data: visibleEvents.slice(0, 10).map(() => 1),
         backgroundColor: 'rgba(54, 162, 235, 0.5)',
       }
     ],
@@ -166,7 +168,7 @@ const GlobalStats = () => {
                   총 이벤트 수
                 </Typography>
                 <Typography variant="h4" color="primary">
-                  {events.length}
+                  {visibleEvents.length}
                 </Typography>
               </Grid>
               <Grid item xs={4}>
@@ -174,7 +176,7 @@ const GlobalStats = () => {
                   총 조직 수
                 </Typography>
                 <Typography variant="h4" color="secondary">
-                  {new Set(events.map(event => event.organization_code)).size}
+                  {new Set(visibleEvents.map(event => event.organization_code)).size}
                 </Typography>
               </Grid>
               <Grid item xs={4}>
@@ -182,7 +184,7 @@ const GlobalStats = () => {
                   최근 이벤트
                 </Typography>
                 <Typography variant="h4" color="info.main">
-                  {events.filter(event => 
+                  {visibleEvents.filter(event =>
                     new Date(event.event_date_time) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
                   ).length}
                 </Typography>
