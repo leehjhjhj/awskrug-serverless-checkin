@@ -52,30 +52,25 @@ const EventDetail = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h5" component="h1">
-          이벤트 상세 정보
-        </Typography>
-        <Box display="flex" gap={2}>
-          <Button
-            variant="outlined"
-            color="primary"
-            startIcon={<CloudUploadIcon />}
-            onClick={() => setUploadDialogOpen(true)}
-          >
-            Excel 업로드
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => navigate(`/events/${eventCode}/edit`)}
-          >
-            이벤트 수정
-          </Button>
-        </Box>
-      </Box>
-
       <EventDetailTabs eventCode={eventCode} current={0} />
+
+      <Box display="flex" justifyContent="flex-end" gap={2} mb={3}>
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={<CloudUploadIcon />}
+          onClick={() => setUploadDialogOpen(true)}
+        >
+          Excel 업로드
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate(`/events/${eventCode}/edit`)}
+        >
+          이벤트 수정
+        </Button>
+      </Box>
 
       {event && (
         <Paper elevation={2} sx={{ p: 3 }}>
